@@ -21,8 +21,6 @@ int main()
 {
 	osmosdr::source::sptr src = osmosdr::source::make();
 
-	osmosdr::meta_range_t range = src->get_sample_rates();
-
 	rational_resampler_base_ccc::sptr resampler1 =
 			rational_resampler_base_ccc::make(1, 4,
 			std::vector<gr_complex>());
@@ -42,11 +40,8 @@ int main()
 
 	audio::sink::sptr sink = audio::sink::make(48000);
 
-	std::cout << range.to_pp_string() << std::endl;
-	std::cout << "New sample rate: " << src->set_sample_rate(2000000.0)
-		<< std::endl;
-	std::cout << "New center frequency: " <<
-		src->set_center_freq(103400000.0) << std::endl;
+	src->set_sample_rate(2000000.0);
+	src->set_center_freq(103400000.0);
 	src->set_freq_corr(0.0);
 	src->set_gain_mode(false);
 	src->set_gain(10.0);
