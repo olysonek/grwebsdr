@@ -17,34 +17,29 @@ using namespace gr;
 using namespace gr::analog;
 using namespace gr::filter;
 
-#if 0
-class my_block : public top_block {
-public:
-	my_block() : top_block("bla") {
-	}
-	/*
-	my_block() : top_block("bla") {
-	}
-	*/
-};
-#endif
-
 int main()
 {
 	osmosdr::source::sptr src = osmosdr::source::make();
+
 	osmosdr::meta_range_t range = src->get_sample_rates();
-	rational_resampler_base_fff::sptr resampler1 =
-			rational_resampler_base_fff::make(48, 50,
-			std::vector<float>());
-	rational_resampler_base_ccc::sptr resampler2 =
+
+	rational_resampler_base_ccc::sptr resampler1 =
 			rational_resampler_base_ccc::make(1, 4,
 			std::vector<gr_complex>());
-	fir_filter_ccf::sptr low_pass = fir_filter_ccf::make(1,
+
+	fir_filter_ccf::sptr low_pass1 = fir_filter_ccf::make(1,
 			firdes::low_pass(1.0, 2000000.0, 100000.0, 1000000.0));
-	fir_filter_fff::sptr low_pass2 = fir_filter_fff::make(10.0,
-			firdes::low_pass(1.0, 500000.0, 50000.0/2-50000.0/32, 50000.0/32));
+
 	quadrature_demod_cf::sptr demod = quadrature_demod_cf::make(
 			500000/(2*M_PI*75000));
+
+	fir_filter_fff::sptr low_pass2 = fir_filter_fff::make(10.0,
+			firdes::low_pass(1.0, 500000.0, 50000.0/2-50000.0/32, 50000.0/32));
+
+	rational_resampler_base_fff::sptr resampler2 =
+			rational_resampler_base_fff::make(48, 50,
+			std::vector<float>());
+
 	audio::sink::sptr sink = audio::sink::make(48000);
 
 	std::cout << range.to_pp_string() << std::endl;
@@ -60,12 +55,12 @@ int main()
 	src->set_bandwidth(0.0);
 
 	top_block_sptr bl = make_top_block("bla");
-	bl->connect(src, 0, resampler2, 0);
-	bl->connect(resampler2, 0, low_pass, 0);
-	bl->connect(low_pass, 0, demod, 0);
+	bl->connect(src, 0, resampler1, 0);
+	bl->connect(resampler1, 0, low_pass1, 0);
+	bl->connect(low_pass1, 0, demod, 0);
 	bl->connect(demod, 0, low_pass2, 0);
-	bl->connect(low_pass2, 0, resampler1, 0);
-	bl->connect(resampler1, 0, sink, 0);
+	bl->connect(low_pass2, 0, resampler2, 0);
+	bl->connect(resampler2, 0, sink, 0);
 
 	bl->start();
 	getchar();
