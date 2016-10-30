@@ -17,6 +17,9 @@ using namespace gr;
 using namespace gr::analog;
 using namespace gr::filter;
 
+/* C++ translation of the design_filter function from rational_resampler.py
+ * from GNU Radio.
+ */
 std::vector<float> filter_f(int interpolation, int decimation, double fbw)
 {
 	float beta = 7.0;
