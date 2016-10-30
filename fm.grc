@@ -124,7 +124,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -148,7 +148,7 @@
     </param>
     <param>
       <key>samp_rate</key>
-      <value>500000/10</value>
+      <value>2000000/10</value>
     </param>
     <param>
       <key>tau</key>
@@ -171,7 +171,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -183,7 +183,7 @@
     </param>
     <param>
       <key>gain</key>
-      <value>500000/(2*math.pi*75000)</value>
+      <value>200000/(2*math.pi*75000)</value>
     </param>
     <param>
       <key>id</key>
@@ -218,7 +218,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -387,15 +387,15 @@
     </param>
     <param>
       <key>cutoff_freq</key>
-      <value>50000/2 - 50000/32</value>
+      <value>200000/2 - 200000/32</value>
     </param>
     <param>
       <key>decim</key>
-      <value>10</value>
+      <value>1</value>
     </param>
     <param>
       <key>_enabled</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>type</key>
@@ -431,11 +431,11 @@
     </param>
     <param>
       <key>samp_rate</key>
-      <value>500000</value>
+      <value>200000</value>
     </param>
     <param>
       <key>width</key>
-      <value>50000/32</value>
+      <value>200000/32</value>
     </param>
     <param>
       <key>win</key>
