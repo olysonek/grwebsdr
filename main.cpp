@@ -63,28 +63,30 @@ int main()
 	osmosdr::source::sptr src = osmosdr::source::make();
 
 	rational_resampler_base_ccc::sptr resampler1 =
-			rational_resampler_base_ccc::make(1, 4,
-			filter_c(1, 4, 0.4f));
+			rational_resampler_base_ccc::make(1, 10,
+			filter_c(1, 10, 0.4f));
 
 	fir_filter_ccf::sptr low_pass1 = fir_filter_ccf::make(1,
-			firdes::low_pass(1.0, 2000000.0, 100000.0, 1000000.0));
+			firdes::low_pass(1.0, 200000.0, 100000.0 - 1000.0, 1000.0));
 
 	quadrature_demod_cf::sptr demod = quadrature_demod_cf::make(
-			500000/(2*M_PI*75000));
+			200000/(2*M_PI*75000));
 
-	fir_filter_fff::sptr low_pass2 = fir_filter_fff::make(10.0,
-			firdes::low_pass(1.0, 500000.0, 50000.0/2-50000.0/32, 50000.0/32));
+	fir_filter_fff::sptr low_pass2 = fir_filter_fff::make(1,
+			firdes::low_pass(1.0, 200000.0, 200000.0/2 - 200000/1000, 200000.0/1000));
 
-	d = gcd(48, 50);
+	d = gcd(48, 200);
 	rational_resampler_base_fff::sptr resampler2 =
-			rational_resampler_base_fff::make(48, 50,
-			filter_f(48 / d, 50 / d, 0.4f));
+			rational_resampler_base_fff::make(48, 200,
+			filter_f(48, 200, 0.4f));
 
 	audio::sink::sptr sink = audio::sink::make(48000);
 
 	src->set_sample_rate(2000000.0);
 	src->set_center_freq(99000000.0);
 	src->set_freq_corr(0.0);
+	src->set_dc_offset_mode(0);
+	src->set_iq_balance_mode(0);
 	src->set_gain_mode(false);
 	src->set_gain(10.0);
 	src->set_if_gain(20.0);
