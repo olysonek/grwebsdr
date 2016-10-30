@@ -51,28 +51,35 @@ std::vector<gr_complex> filter_c(int interpolation, int decimation, double fbw)
 
 int main()
 {
+	double src_rate = 2000000.0;
+	int dec1 = 10; // Pre-demodulation decimation
+	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
+	int dec2 = dec1_rate / 1000; // Decimate down to 1kHz
+
 	osmosdr::source::sptr src = osmosdr::source::make();
 
 	rational_resampler_base_ccc::sptr resampler1 =
-			rational_resampler_base_ccc::make(1, 10,
-			filter_c(1, 10, 0.4f));
+			rational_resampler_base_ccc::make(1, dec1,
+			filter_c(1, dec1, 0.4f));
 
 	fir_filter_ccf::sptr low_pass1 = fir_filter_ccf::make(1,
-			firdes::low_pass(1.0, 200000.0, 100000.0 - 1000.0, 1000.0));
+			firdes::low_pass(1.0, dec1_rate,
+			dec1_rate / 2 - dec1_rate / 1000, dec1_rate / 1000));
 
 	quadrature_demod_cf::sptr demod = quadrature_demod_cf::make(
-			200000/(2*M_PI*75000));
+			dec1_rate /(2*M_PI*75000));
 
 	fir_filter_fff::sptr low_pass2 = fir_filter_fff::make(1,
-			firdes::low_pass(1.0, 200000.0, 200000.0/2 - 200000/1000, 200000.0/1000));
+			firdes::low_pass(1.0, dec1_rate,
+			dec1_rate/2 - dec1_rate / 1000, dec1_rate / 1000));
 
 	rational_resampler_base_fff::sptr resampler2 =
-			rational_resampler_base_fff::make(48, 200,
-			filter_f(48, 200, 0.4f));
+			rational_resampler_base_fff::make(48, dec2,
+			filter_f(48, dec2, 0.4f));
 
 	audio::sink::sptr sink = audio::sink::make(48000);
 
-	src->set_sample_rate(2000000.0);
+	src->set_sample_rate(src_rate);
 	src->set_center_freq(99000000.0);
 	src->set_freq_corr(0.0);
 	src->set_dc_offset_mode(0);
