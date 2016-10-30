@@ -242,7 +242,7 @@
     </param>
     <param>
       <key>quad_rate</key>
-      <value>500000</value>
+      <value>200000</value>
     </param>
   </block>
   <block>
@@ -356,11 +356,11 @@
     </param>
     <param>
       <key>samp_rate</key>
-      <value>2000000</value>
+      <value>200000</value>
     </param>
     <param>
       <key>width</key>
-      <value>1000000</value>
+      <value>1000</value>
     </param>
     <param>
       <key>win</key>
@@ -458,7 +458,7 @@
     </param>
     <param>
       <key>decim</key>
-      <value>4</value>
+      <value>10</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -517,7 +517,7 @@
     </param>
     <param>
       <key>decim</key>
-      <value>50</value>
+      <value>20</value>
     </param>
     <param>
       <key>_enabled</key>
