@@ -387,7 +387,7 @@
     </param>
     <param>
       <key>cutoff_freq</key>
-      <value>200000/2 - 200000/32</value>
+      <value>200000/2</value>
     </param>
     <param>
       <key>decim</key>
