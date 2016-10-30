@@ -202,7 +202,7 @@
     <key>analog_wfm_rcv</key>
     <param>
       <key>audio_decimation</key>
-      <value>10</value>
+      <value>1</value>
     </param>
     <param>
       <key>alias</key>
@@ -517,7 +517,7 @@
     </param>
     <param>
       <key>decim</key>
-      <value>20</value>
+      <value>200</value>
     </param>
     <param>
       <key>_enabled</key>
