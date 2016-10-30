@@ -124,7 +124,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -848,6 +848,12 @@
   <connection>
     <source_block_id>low_pass_filter_1</source_block_id>
     <sink_block_id>analog_fm_deemph_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>low_pass_filter_1</source_block_id>
+    <sink_block_id>rational_resampler_xxx_1</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
