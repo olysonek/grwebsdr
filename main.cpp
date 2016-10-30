@@ -17,16 +17,6 @@ using namespace gr;
 using namespace gr::analog;
 using namespace gr::filter;
 
-int gcd(int a, int b)
-{
-	while (b) {
-		int tmp = b;
-		b = a % b;
-		a = tmp;
-	}
-	return a;
-}
-
 std::vector<float> filter_f(int interpolation, int decimation, double fbw)
 {
 	float beta = 7.0;
@@ -58,8 +48,6 @@ std::vector<gr_complex> filter_c(int interpolation, int decimation, double fbw)
 
 int main()
 {
-	int d;
-
 	osmosdr::source::sptr src = osmosdr::source::make();
 
 	rational_resampler_base_ccc::sptr resampler1 =
@@ -75,7 +63,6 @@ int main()
 	fir_filter_fff::sptr low_pass2 = fir_filter_fff::make(1,
 			firdes::low_pass(1.0, 200000.0, 200000.0/2 - 200000/1000, 200000.0/1000));
 
-	d = gcd(48, 200);
 	rational_resampler_base_fff::sptr resampler2 =
 			rational_resampler_base_fff::make(48, 200,
 			filter_f(48, 200, 0.4f));
