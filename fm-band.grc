@@ -38,7 +38,7 @@
     </param>
     <param>
       <key>generate_options</key>
-      <value>wx_gui</value>
+      <value>no_gui</value>
     </param>
     <param>
       <key>hier_block_src_path</key>
@@ -97,7 +97,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -156,11 +156,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(880, 400)</value>
+      <value>(880, 544)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -348,7 +348,7 @@
     </param>
     <param>
       <key>center_freq</key>
-      <value>center</value>
+      <value>0</value>
     </param>
     <param>
       <key>comment</key>
@@ -486,7 +486,7 @@
     </param>
     <param>
       <key>freq0</key>
-      <value>freq</value>
+      <value>103e6</value>
     </param>
     <param>
       <key>gain_mode0</key>
@@ -745,7 +745,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>fft_rate</key>
