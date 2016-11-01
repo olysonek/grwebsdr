@@ -152,66 +152,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>75000</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(304, 544)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>grid_pos</key>
-      <value></value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>cutoff</value>
-    </param>
-    <param>
-      <key>label</key>
-      <value></value>
-    </param>
-    <param>
-      <key>max</key>
-      <value>200000</value>
-    </param>
-    <param>
-      <key>min</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>notebook</key>
-      <value></value>
-    </param>
-    <param>
-      <key>num_steps</key>
-      <value>1000</value>
-    </param>
-    <param>
-      <key>style</key>
-      <value>wx.SL_HORIZONTAL</value>
-    </param>
-  </block>
-  <block>
-    <key>variable_slider</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>converver</key>
-      <value>float_converter</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>948e5</value>
+      <value>103e6</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -270,7 +211,7 @@
     </param>
     <param>
       <key>cutoff_freq</key>
-      <value>cutoff</value>
+      <value>75000</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -298,70 +239,11 @@
     </param>
     <param>
       <key>width</key>
-      <value>trans</value>
+      <value>25000</value>
     </param>
     <param>
       <key>win</key>
       <value>firdes.WIN_HAMMING</value>
-    </param>
-  </block>
-  <block>
-    <key>variable_slider</key>
-    <param>
-      <key>comment</key>
-      <value></value>
-    </param>
-    <param>
-      <key>converver</key>
-      <value>float_converter</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>75000</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(440, 544)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>grid_pos</key>
-      <value></value>
-    </param>
-    <param>
-      <key>id</key>
-      <value>trans</value>
-    </param>
-    <param>
-      <key>label</key>
-      <value></value>
-    </param>
-    <param>
-      <key>max</key>
-      <value>1000000</value>
-    </param>
-    <param>
-      <key>min</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>notebook</key>
-      <value></value>
-    </param>
-    <param>
-      <key>num_steps</key>
-      <value>1000</value>
-    </param>
-    <param>
-      <key>style</key>
-      <value>wx.SL_HORIZONTAL</value>
     </param>
   </block>
   <block>
@@ -408,7 +290,7 @@
     </param>
     <param>
       <key>quad_rate</key>
-      <value>500000</value>
+      <value>250000</value>
     </param>
   </block>
   <block>
@@ -478,7 +360,7 @@
     </param>
     <param>
       <key>decim</key>
-      <value>4</value>
+      <value>8</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -533,7 +415,7 @@
     </param>
     <param>
       <key>decim</key>
-      <value>500</value>
+      <value>250</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -863,7 +745,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>fft_rate</key>
@@ -879,7 +761,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(488, 4)</value>
+      <value>(488, 20)</value>
     </param>
     <param>
       <key>_rotation</key>
