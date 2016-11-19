@@ -16,7 +16,7 @@ class raw_audio:
         self._output = filter.rational_resampler_fff(interpolation=48,
                 decimation=250, taps=None, fractional_bw=None)
 
-        top_block.connect((source, 0), (self._demodulator, 0))
+        top_block.connect((source._output, 0), (self._demodulator, 0))
         top_block.connect((self._demodulator, 0), (self._output, 0))
 
     def get_output_rate(self):

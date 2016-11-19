@@ -12,7 +12,7 @@ class band:
                 cutoff / 3, firdes.WIN_HAMMING, 6.76)
         self._output = filter.freq_xlating_fir_filter_ccc(self._decimation,
                 taps, center_freq, source._output.get_sample_rate())
-        top_block.connect((source, 0), (self._output, 0))
+        top_block.connect((source._output, 0), (self._output, 0))
 
     def get_output_rate(self):
-
+        return self._source._output.get_sample_rate() / self._decimation
