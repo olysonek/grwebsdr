@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+	ws = new WebSocket('ws://localhost:8000')
+	ws.onopen = function (event) {
+		ws.send('200000')
+	};
+</script>
+</body>
+</html>
