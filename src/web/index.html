@@ -4,8 +4,14 @@
 <script>
 	ws = new WebSocket('ws://localhost:8000')
 	ws.onopen = function (event) {
-		ws.send('200000')
+		ws.send('0');
 	};
+	function send_freq(val) {
+		ws.send(val);
+	}
 </script>
+	<label for="freq">Freq</label>
+	<input type="range" id="freq" min="-1000000" max="1000000" value="0"
+		style="border: 1px" onchange="send_freq(this.value)">
 </body>
 </html>
