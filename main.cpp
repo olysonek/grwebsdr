@@ -7,16 +7,22 @@
 #include <gnuradio/filter/rational_resampler_base_ccc.h>
 #include <gnuradio/filter/rational_resampler_base_fff.h>
 #include <gnuradio/filter/freq_xlating_fir_filter_ccc.h>
+#include <gnuradio/blocks/wavfile_sink.h>
 #include <gnuradio/top_block.h>
 #include <iostream>
 #include <cmath>
 #include <osmosdr/source.h>
 #include <cstdio>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 using namespace boost;
 using namespace gr;
 using namespace gr::analog;
 using namespace gr::filter;
+using namespace gr::blocks;
 
 /* C++ translation of the design_filter function from rational_resampler.py
  * from GNU Radio.
@@ -66,6 +72,15 @@ int main()
 	int dec1 = 8; // Pre-demodulation decimation
 	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
 	int dec2 = dec1_rate / 1000; // Decimate down to 1kHz
+	int rfd;
+	const char *fifo_name = "/tmp/wav-fifo";
+
+	if (mknod(fifo_name, 0600 | S_IFIFO, 0) == -1) {
+		perror("mknod");
+		return 1;
+	}
+	rfd = open(fifo_name, O_RDONLY | O_NONBLOCK);
+	fcntl(rfd, F_SETPIPE_SZ, getpagesize());
 
 	osmosdr::source::sptr src = osmosdr::source::make();
 
@@ -85,7 +100,7 @@ int main()
 			rational_resampler_base_fff::make(48, dec2,
 			filter_f(48, dec2, 0.4f));
 
-	audio::sink::sptr sink = audio::sink::make(48000);
+	wavfile_sink::sptr sink = wavfile_sink::make(fifo_name, 1, 48000);
 
 	src->set_sample_rate(src_rate);
 	src->set_center_freq(99000000.0);
