@@ -21,6 +21,10 @@
 
 #define PORT 8080
 
+#define INDEX_PAGE "<!DOCTYPE html><html><body><audio controls>" \
+		"<source src=\"stream.wav\" type=\"audio/wav\"></audio>" \
+		"</body></html>"
+
 using namespace boost;
 using namespace gr;
 using namespace gr::analog;
@@ -79,18 +83,25 @@ ssize_t callback(void *cls, uint64_t pos, char *buf, size_t max)
 	(void) pos;
 	ret = read(rfd, buf, max);
 	if (ret < 0) {
-		perror("read");
-		return MHD_CONTENT_READER_END_WITH_ERROR;
+		if (errno == EAGAIN) {
+			return 0;
+		} else {
+			perror("read");
+			return MHD_CONTENT_READER_END_WITH_ERROR;
+		}
 	} else {
 		return ret;
 	}
 }
+
+top_block_sptr bl;
 
 int answer(void *cls, struct MHD_Connection *con, const char *url,
 		const char *method, const char *version,
 		const char *upload_data, size_t *upload_data_size,
 		void **con_cls)
 {
+	puts("answer called");
 	struct MHD_Response *response;
 	int ret;
 
@@ -107,10 +118,17 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 	*con_cls = NULL;
 	if (strcmp(method, MHD_HTTP_METHOD_GET) != 0)
 		return MHD_NO;
-	response = MHD_create_response_from_callback(MHD_SIZE_UNKNOWN, 1024,
-			&callback, NULL, NULL);
-	MHD_add_response_header (response, "Content-Type", "audio/x-wav");
+	if (strcmp(url, "/stream.wav") == 0) {
+		bl->start();
+		response = MHD_create_response_from_callback(MHD_SIZE_UNKNOWN, 1024,
+				&callback, NULL, NULL);
+		MHD_add_response_header(response, "Content-Type", "audio/x-wav");
+	} else {
+		response = MHD_create_response_from_buffer(strlen(INDEX_PAGE),
+				(void *) INDEX_PAGE, MHD_RESPMEM_PERSISTENT);
+	}
 	ret = MHD_queue_response(con, MHD_HTTP_OK, response);
+	MHD_destroy_response(response);
 	return ret;
 }
 
@@ -130,7 +148,8 @@ int main()
 	rfd = open(fifo_name, O_RDONLY | O_NONBLOCK);
 	fcntl(rfd, F_SETPIPE_SZ, getpagesize());
 
-	daemon = MHD_start_daemon(MHD_USE_DEBUG | MHD_USE_SELECT_INTERNALLY,
+	daemon = MHD_start_daemon(MHD_USE_DEBUG | MHD_USE_POLL_INTERNALLY
+			| MHD_USE_THREAD_PER_CONNECTION,
 			PORT, NULL, NULL, &answer, NULL, MHD_OPTION_END);
 	if (daemon == NULL) {
 		fprintf(stderr, "Failed to create MHD daemon.\n");
@@ -168,14 +187,14 @@ int main()
 	src->set_bb_gain(20.0);
 	src->set_bandwidth(0.0);
 
-	top_block_sptr bl = make_top_block("bla");
+	bl = make_top_block("bla");
 	bl->connect(src, 0, xlate, 0);
 	bl->connect(xlate, 0, demod, 0);
 	bl->connect(demod, 0, low_pass2, 0);
 	bl->connect(low_pass2, 0, resampler2, 0);
 	bl->connect(resampler2, 0, sink, 0);
 
-	bl->start();
+	//bl->start();
 	getchar();
 	bl->stop();
 	bl->wait();
