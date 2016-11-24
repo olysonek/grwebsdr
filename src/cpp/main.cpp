@@ -10,15 +10,7 @@
 
 #define PORT 8080
 
-#define INDEX_PAGE "<!DOCTYPE html><html><body><audio controls>" \
-		"<source src=\"stream.wav\" type=\"audio/wav\"></audio>" \
-		"</body></html>"
-
-using namespace boost;
 using namespace gr;
-using namespace gr::analog;
-using namespace gr::filter;
-using namespace gr::blocks;
 
 int rfd;
 
