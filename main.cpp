@@ -122,7 +122,7 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 		bl->start();
 		response = MHD_create_response_from_callback(MHD_SIZE_UNKNOWN, 1024,
 				&callback, NULL, NULL);
-		MHD_add_response_header(response, "Content-Type", "audio/x-wav");
+		MHD_add_response_header(response, "Content-Type", "audio/wav");
 	} else {
 		response = MHD_create_response_from_buffer(strlen(INDEX_PAGE),
 				(void *) INDEX_PAGE, MHD_RESPMEM_PERSISTENT);
@@ -140,6 +140,7 @@ int main()
 	int dec2 = dec1_rate / 1000; // Decimate down to 1kHz
 	const char *fifo_name = "/tmp/wav-fifo";
 	struct MHD_Daemon *daemon;
+	int flags;
 
 	if (mknod(fifo_name, 0600 | S_IFIFO, 0) == -1) {
 		perror("mknod");
@@ -147,6 +148,8 @@ int main()
 	}
 	rfd = open(fifo_name, O_RDONLY | O_NONBLOCK);
 	fcntl(rfd, F_SETPIPE_SZ, getpagesize());
+	flags = fcntl(rfd, F_GETFL, 0);
+	fcntl(rfd, F_SETFL, ~O_NONBLOCK & flags);
 
 	daemon = MHD_start_daemon(MHD_USE_DEBUG | MHD_USE_POLL_INTERNALLY
 			| MHD_USE_THREAD_PER_CONNECTION,
@@ -194,7 +197,6 @@ int main()
 	bl->connect(low_pass2, 0, resampler2, 0);
 	bl->connect(resampler2, 0, sink, 0);
 
-	//bl->start();
 	getchar();
 	bl->stop();
 	bl->wait();
