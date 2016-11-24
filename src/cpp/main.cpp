@@ -217,6 +217,7 @@ int main()
 	bl->wait();
 
 	MHD_stop_daemon(daemon);
+	remove(fifo_name);
 
 	return 0;
 }
