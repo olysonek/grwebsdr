@@ -104,6 +104,8 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 	puts("answer called");
 	struct MHD_Response *response;
 	int ret;
+	int fd;
+	struct stat st;
 
 	(void) cls;
 	(void) url;
@@ -123,10 +125,23 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 		response = MHD_create_response_from_callback(MHD_SIZE_UNKNOWN, 1024,
 				&callback, NULL, NULL);
 		MHD_add_response_header(response, "Content-Type", "audio/wav");
+	} else if (strcmp(url, "/") == 0 || strcmp(url, "/index.html") == 0) {
+		fd = open("../web/index.html", O_RDONLY);
+		if (fd < 0) {
+			perror("open");
+			return MHD_NO;
+		}
+		if (fstat(fd, &st) < 0) {
+			perror("fstat");
+			close(fd);
+			return MHD_NO;
+		}
+		response = MHD_create_response_from_fd(st.st_size, fd);
 	} else {
-		response = MHD_create_response_from_buffer(strlen(INDEX_PAGE),
-				(void *) INDEX_PAGE, MHD_RESPMEM_PERSISTENT);
+		return MHD_NO;
 	}
+	if (!response)
+		return MHD_NO;
 	ret = MHD_queue_response(con, MHD_HTTP_OK, response);
 	MHD_destroy_response(response);
 	return ret;

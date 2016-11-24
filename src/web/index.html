@@ -2,6 +2,7 @@
 <html>
 <body>
 <script>
+/*
 	ws = new WebSocket('ws://localhost:8000')
 	ws.onopen = function (event) {
 		ws.send('0');
@@ -9,9 +10,21 @@
 	function send_freq(val) {
 		ws.send(val);
 	}
+*/
+	var AudioContext = window.AudioContext || window.webkitAudioContext;
+	var audioCtx = new AudioContext
+	var audio = new Audio();
+	audio.src = 'stream.wav';
+	audio.controls = false;
+	audio.autoplay = true;
+	document.body.appendChild(audio);
+	var src = audioCtx.createMediaElementSource(audio);
+	src.connect(audioCtx.destination);
 </script>
+<!--
 	<label for="freq">Freq</label>
 	<input type="range" id="freq" min="-1000000" max="1000000" value="0"
 		style="border: 1px" onchange="send_freq(this.value)">
+-->
 </body>
 </html>
