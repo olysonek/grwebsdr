@@ -15,6 +15,7 @@ public:
 	static sptr make(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 			const char *fifo_name);
 	void set_center_freq(double freq);
+	void disconnect();
 
 private:
 	receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,

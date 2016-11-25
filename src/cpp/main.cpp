@@ -7,10 +7,17 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <microhttpd.h>
+#include <gnuradio/blocks/null_sink.h>
 
 #define PORT 8080
 
 using namespace gr;
+using namespace std;
+
+receiver::sptr rec;
+osmosdr::source::sptr src;
+const char *fifo_name = "/tmp/wav-fifo";
+gr::blocks::null_sink::sptr null;
 
 int rfd;
 
@@ -60,7 +67,10 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 	if (strcmp(method, MHD_HTTP_METHOD_GET) != 0)
 		return MHD_NO;
 	if (strcmp(url, "/stream.wav") == 0) {
-		bl->start();
+		bl->lock();
+		bl->disconnect(src, 0, null, 0);
+		rec = receiver::make(src, bl, fifo_name);
+		bl->unlock();
 		response = MHD_create_response_from_callback(MHD_SIZE_UNKNOWN, 1024,
 				&callback, NULL, NULL);
 		MHD_add_response_header(response, "Content-Type", "audio/wav");
@@ -86,13 +96,28 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 	return ret;
 }
 
+void request_completed(void *cls, struct MHD_Connection *connection,
+		void **con_cls, enum MHD_RequestTerminationCode toe)
+{
+	puts("request_completed called");
+	(void) cls;
+	(void) connection;
+	(void) con_cls;
+
+	if (toe != MHD_REQUEST_TERMINATED_CLIENT_ABORT)
+		return;
+	bl->lock();
+	rec->disconnect();
+	rec = nullptr;
+	bl->connect(src, 0, null, 0);
+	bl->unlock();
+}
+
 int main()
 {
 	double src_rate = 2000000.0;
-	const char *fifo_name = "/tmp/wav-fifo";
 	struct MHD_Daemon *daemon;
 	int flags;
-	receiver::sptr rec;
 
 	if (mknod(fifo_name, 0600 | S_IFIFO, 0) == -1) {
 		perror("mknod");
@@ -105,17 +130,21 @@ int main()
 
 	daemon = MHD_start_daemon(MHD_USE_DEBUG | MHD_USE_POLL_INTERNALLY
 			| MHD_USE_THREAD_PER_CONNECTION,
-			PORT, NULL, NULL, &answer, NULL, MHD_OPTION_END);
+			PORT, NULL, NULL, &answer, NULL,
+			MHD_OPTION_NOTIFY_COMPLETED, &request_completed, NULL,
+			MHD_OPTION_END);
 	if (daemon == NULL) {
 		fprintf(stderr, "Failed to create MHD daemon.\n");
 		return 1;
 	}
 
+	null = gr::blocks::null_sink::make(8);
+
 	bl = make_top_block("bla");
-	osmosdr::source::sptr src = osmosdr::source::make();
+	src = osmosdr::source::make();
 
 	src->set_sample_rate(src_rate);
-	src->set_center_freq(99000000.0);
+	src->set_center_freq(99500000.0);
 	src->set_freq_corr(0.0);
 	src->set_dc_offset_mode(0);
 	src->set_iq_balance_mode(0);
@@ -125,7 +154,9 @@ int main()
 	src->set_bb_gain(20.0);
 	src->set_bandwidth(0.0);
 
-	rec = receiver::make(src, bl, fifo_name);
+	bl->connect(src, 0, null, 0);
+	bl->start();
+
 
 	getchar();
 	bl->stop();
