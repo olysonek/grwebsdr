@@ -7,7 +7,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <microhttpd.h>
-#include <gnuradio/blocks/null_sink.h>
 
 #define PORT 8080
 
@@ -17,7 +16,6 @@ using namespace std;
 receiver::sptr rec;
 osmosdr::source::sptr src;
 const char *fifo_name = "/tmp/wav-fifo";
-gr::blocks::null_sink::sptr null;
 
 int rfd;
 
@@ -68,9 +66,9 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 		return MHD_NO;
 	if (strcmp(url, "/stream.wav") == 0) {
 		bl->lock();
-		bl->disconnect(src, 0, null, 0);
 		rec = receiver::make(src, bl, fifo_name);
 		bl->unlock();
+		bl->start();
 		response = MHD_create_response_from_callback(MHD_SIZE_UNKNOWN, 1024,
 				&callback, NULL, NULL);
 		MHD_add_response_header(response, "Content-Type", "audio/wav");
@@ -106,10 +104,11 @@ void request_completed(void *cls, struct MHD_Connection *connection,
 
 	if (toe != MHD_REQUEST_TERMINATED_CLIENT_ABORT)
 		return;
+	bl->stop();
+	bl->wait();
 	bl->lock();
 	rec->disconnect();
 	rec = nullptr;
-	bl->connect(src, 0, null, 0);
 	bl->unlock();
 }
 
@@ -138,8 +137,6 @@ int main()
 		return 1;
 	}
 
-	null = gr::blocks::null_sink::make(8);
-
 	bl = make_top_block("bla");
 	src = osmosdr::source::make();
 
@@ -153,10 +150,6 @@ int main()
 	src->set_if_gain(20.0);
 	src->set_bb_gain(20.0);
 	src->set_bandwidth(0.0);
-
-	bl->connect(src, 0, null, 0);
-	bl->start();
-
 
 	getchar();
 	bl->stop();
