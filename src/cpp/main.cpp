@@ -7,11 +7,17 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <microhttpd.h>
+#include <atomic>
+#include <mutex>
 
 #define PORT 8080
 
 using namespace gr;
 using namespace std;
+
+atomic_int con_num;
+mutex topbl_mutex;
+int nlisteners;
 
 receiver::sptr rec;
 osmosdr::source::sptr src;
@@ -65,13 +71,25 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 	if (strcmp(method, MHD_HTTP_METHOD_GET) != 0)
 		return MHD_NO;
 	if (strcmp(url, "/stream.wav") == 0) {
+		topbl_mutex.lock();
+		printf("access, nlist: %d\n", nlisteners);
+		++nlisteners;
 		bl->lock();
+		if (nlisteners > 1)
+			rec->disconnect();
 		rec = receiver::make(src, bl, fifo_name);
 		bl->unlock();
-		bl->start();
+		if (nlisteners == 1)
+			bl->start();
+		topbl_mutex.unlock();
 		response = MHD_create_response_from_callback(MHD_SIZE_UNKNOWN, 1024,
 				&callback, NULL, NULL);
 		MHD_add_response_header(response, "Content-Type", "audio/wav");
+		MHD_add_response_header(response, MHD_HTTP_HEADER_EXPIRES, "0");
+		MHD_add_response_header(response, MHD_HTTP_HEADER_PRAGMA,
+				"no-cache");
+		MHD_add_response_header(response, MHD_HTTP_HEADER_CACHE_CONTROL,
+				"no-cache, no-store, must-revalidate");
 	} else if (strcmp(url, "/") == 0 || strcmp(url, "/index.html") == 0) {
 		fd = open("../web/index.html", O_RDONLY);
 		if (fd < 0) {
@@ -104,12 +122,35 @@ void request_completed(void *cls, struct MHD_Connection *connection,
 
 	if (toe != MHD_REQUEST_TERMINATED_CLIENT_ABORT)
 		return;
-	bl->stop();
-	bl->wait();
-	bl->lock();
-	rec->disconnect();
-	rec = nullptr;
-	bl->unlock();
+	topbl_mutex.lock();
+	printf("compl, nlist: %d\n", nlisteners);
+	--nlisteners;
+	if (nlisteners == 0) {
+		bl->stop();
+		bl->wait();
+		bl->lock();
+		rec->disconnect();
+		rec = nullptr;
+		bl->unlock();
+	}
+	topbl_mutex.unlock();
+}
+
+void connection_cb(void *cls, struct MHD_Connection *connection,
+		void **socket_context, enum MHD_ConnectionNotificationCode toe)
+{
+	(void) cls;
+	(void) connection;
+	(void) socket_context;
+
+	if (toe == MHD_CONNECTION_NOTIFY_STARTED) {
+		int i = con_num.fetch_add(1);
+		printf("Connection %d started.\n", i);
+		*socket_context = new int(i);
+	} else if (toe == MHD_CONNECTION_NOTIFY_CLOSED) {
+		int i = **((int **) socket_context);
+		printf("Connection %d closed.\n", i);
+	}
 }
 
 int main()
@@ -131,6 +172,7 @@ int main()
 			| MHD_USE_THREAD_PER_CONNECTION,
 			PORT, NULL, NULL, &answer, NULL,
 			MHD_OPTION_NOTIFY_COMPLETED, &request_completed, NULL,
+			MHD_OPTION_NOTIFY_CONNECTION, &connection_cb, NULL,
 			MHD_OPTION_END);
 	if (daemon == NULL) {
 		fprintf(stderr, "Failed to create MHD daemon.\n");
