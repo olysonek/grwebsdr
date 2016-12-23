@@ -112,7 +112,7 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 			return MHD_NO;
 		}
 		rec = receiver::make(src, topbl, pipe_fds);
-		receiver_map[stream] = rec;
+		receiver_map.emplace(stream, rec);
 		topbl->unlock();
 		if (receiver_map.size() == 1)
 			topbl->start();
@@ -162,13 +162,14 @@ void request_completed(void *cls, struct MHD_Connection *connection,
 		return;
 	topbl_mutex.lock();
 	printf("compl, nlist: %lu\n", receiver_map.size());
-	if (receiver_map.size() == 1) {
+	if (receiver_map.size() == 1
+			&& receiver_map.find(stream) != receiver_map.end()) {
 		topbl->stop();
 		topbl->wait();
-		topbl->lock();
-		receiver_map.erase(stream);
-		topbl->unlock();
 	}
+	topbl->lock();
+	receiver_map.erase(stream);
+	topbl->unlock();
 	topbl_mutex.unlock();
 	puts("request_completed returning");
 }
