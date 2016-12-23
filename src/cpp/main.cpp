@@ -9,6 +9,7 @@
 #include <microhttpd.h>
 #include <atomic>
 #include <mutex>
+#include <cstring>
 
 #define PORT 8080
 
@@ -43,6 +44,21 @@ ssize_t callback(void *cls, uint64_t pos, char *buf, size_t max)
 	}
 }
 
+bool stream_requested(const char *url)
+{
+	const char *slash;
+	size_t len;
+	const char *ogg = ".ogg";
+	const size_t ogg_len = strlen(ogg);
+
+	slash = strrchr(url, '/');
+	if (!slash)
+		return false;
+	++slash;
+	len = strlen(slash);
+	return len > ogg_len && !strcmp(ogg, slash + len - ogg_len);
+}
+
 top_block_sptr bl;
 
 int answer(void *cls, struct MHD_Connection *con, const char *url,
@@ -69,7 +85,7 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 	*con_cls = NULL;
 	if (strcmp(method, MHD_HTTP_METHOD_GET) != 0)
 		return MHD_NO;
-	if (strcmp(url, "/stream.ogg") == 0) {
+	if (stream_requested(url)) {
 		topbl_mutex.lock();
 		printf("access, nlist: %d\n", nlisteners);
 		++nlisteners;
