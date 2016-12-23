@@ -29,10 +29,11 @@ int fds[2];
 ssize_t callback(void *cls, uint64_t pos, char *buf, size_t max)
 {
 	ssize_t ret;
+	int fd = *(int *) cls;
 
-	(void) cls;
 	(void) pos;
-	ret = read(fds[0], buf, max);
+
+	ret = read(fd, buf, max);
 	if (ret < 0) {
 		if (errno == EAGAIN) {
 			return 0;
@@ -113,7 +114,7 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 			bl->start();
 		topbl_mutex.unlock();
 		response = MHD_create_response_from_callback(MHD_SIZE_UNKNOWN, 1024,
-				&callback, NULL, NULL);
+				&callback, fds, NULL);
 		MHD_add_response_header(response, "Content-Type", "audio/ogg");
 		MHD_add_response_header(response, MHD_HTTP_HEADER_EXPIRES, "0");
 		MHD_add_response_header(response, MHD_HTTP_HEADER_PRAGMA,
