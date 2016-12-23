@@ -12,6 +12,7 @@
 #include <cstring>
 
 #define PORT 8080
+#define STREAM_NAME_LEN 8
 
 using namespace gr;
 using namespace std;
@@ -44,19 +45,24 @@ ssize_t callback(void *cls, uint64_t pos, char *buf, size_t max)
 	}
 }
 
-bool stream_requested(const char *url)
+const char *stream_name(const char *url)
 {
-	const char *slash;
+	const char *ret;
 	size_t len;
 	const char *ogg = ".ogg";
 	const size_t ogg_len = strlen(ogg);
 
-	slash = strrchr(url, '/');
-	if (!slash)
-		return false;
-	++slash;
-	len = strlen(slash);
-	return len > ogg_len && !strcmp(ogg, slash + len - ogg_len);
+	ret = strrchr(url, '/');
+	if (!ret)
+		return nullptr;
+	++ret;
+	len = strlen(ret);
+	if (len != STREAM_NAME_LEN)
+		return nullptr;
+	if (!strcmp(ogg, ret + len - ogg_len))
+		return ret;
+	else
+		return nullptr;
 }
 
 top_block_sptr bl;
@@ -71,6 +77,7 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 	int ret;
 	int fd;
 	struct stat st;
+	const char *stream;
 
 	(void) cls;
 	(void) url;
@@ -85,7 +92,8 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 	*con_cls = NULL;
 	if (strcmp(method, MHD_HTTP_METHOD_GET) != 0)
 		return MHD_NO;
-	if (stream_requested(url)) {
+	stream = stream_name(url);
+	if (stream) {
 		topbl_mutex.lock();
 		printf("access, nlist: %d\n", nlisteners);
 		++nlisteners;
