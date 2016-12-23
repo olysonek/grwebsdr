@@ -8,6 +8,14 @@
 #include <gnuradio/filter/freq_xlating_fir_filter_ccc.h>
 #include <gnuradio/blocks/wavfile_sink.h>
 #include <osmosdr/source.h>
+#include <cstdio>
+
+class classa {
+public:
+	~classa() {
+		puts("destructor called\n");
+	}
+};
 
 class receiver {
 public:
@@ -18,6 +26,7 @@ public:
 	void disconnect();
 
 private:
+	classa objecta;
 	receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 			const char *fifo_name);
 	osmosdr::source::sptr src;

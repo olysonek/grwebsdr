@@ -86,11 +86,11 @@ receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 
 void receiver::disconnect()
 {
-	top_bl->disconnect(src, 0, xlate, 0);
-	top_bl->disconnect(xlate, 0, demod, 0);
-	top_bl->disconnect(demod, 0, low_pass, 0);
-	top_bl->disconnect(low_pass, 0, resampler, 0);
-	top_bl->disconnect(resampler, 0, sink, 0);
+	top_bl->disconnect(xlate);
+	top_bl->disconnect(demod);
+	top_bl->disconnect(low_pass);
+	top_bl->disconnect(resampler);
+	//top_bl->disconnect(sink);
 }
 
 void receiver::set_center_freq(double freq)

@@ -75,7 +75,7 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 		printf("access, nlist: %d\n", nlisteners);
 		++nlisteners;
 		bl->lock();
-		if (nlisteners > 1)
+		if (rec != nullptr)
 			rec->disconnect();
 		rec = receiver::make(src, bl, fifo_name);
 		bl->unlock();
@@ -134,6 +134,7 @@ void request_completed(void *cls, struct MHD_Connection *connection,
 		bl->unlock();
 	}
 	topbl_mutex.unlock();
+	puts("request_completed returning");
 }
 
 void connection_cb(void *cls, struct MHD_Connection *connection,
@@ -183,7 +184,7 @@ int main()
 	src = osmosdr::source::make();
 
 	src->set_sample_rate(src_rate);
-	src->set_center_freq(99500000.0);
+	src->set_center_freq(102300000.0);
 	src->set_freq_corr(0.0);
 	src->set_dc_offset_mode(0);
 	src->set_iq_balance_mode(0);
