@@ -1,5 +1,10 @@
 #include "receiver.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdexcept>
 
+using namespace std;
 using namespace gr;
 using namespace gr::analog;
 using namespace gr::filter;
@@ -61,6 +66,7 @@ receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 	int dec1 = 8; // Pre-demodulation decimation
 	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
 	int dec2 = dec1_rate / 1000; // Decimate down to 1kHz
+	int fd;
 
 	xlate = freq_xlating_fir_filter_ccc::make(dec1,
 			taps_f2c(firdes::low_pass(1.0, src_rate, 75000, 25000)),
@@ -75,7 +81,10 @@ receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 	resampler = rational_resampler_base_fff::make(48, dec2,
 			filter_f(48, dec2, 0.4f));
 
-	sink = wavfile_sink::make(fifo_name, 1, 48000);
+	fd = open(fifo_name, O_WRONLY);
+	if (fd < 0)
+		throw runtime_error("open failed");
+	sink = ogg_sink::make(fd, 1, 48000);
 
 	top_bl->connect(src, 0, xlate, 0);
 	top_bl->connect(xlate, 0, demod, 0);

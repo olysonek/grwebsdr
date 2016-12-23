@@ -1,3 +1,4 @@
+#include "ogg_sink.h"
 #include <boost/shared_ptr.hpp>
 #include <gnuradio/top_block.h>
 #include <gnuradio/analog/quadrature_demod_cf.h>
@@ -35,5 +36,5 @@ private:
 	gr::analog::quadrature_demod_cf::sptr demod;
 	gr::filter::fir_filter_fff::sptr low_pass;
 	gr::filter::rational_resampler_base_fff::sptr resampler;
-	gr::blocks::wavfile_sink::sptr sink;
+	ogg_sink::sptr sink;
 };

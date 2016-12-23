@@ -70,7 +70,7 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 	*con_cls = NULL;
 	if (strcmp(method, MHD_HTTP_METHOD_GET) != 0)
 		return MHD_NO;
-	if (strcmp(url, "/stream.wav") == 0) {
+	if (strcmp(url, "/stream.ogg") == 0) {
 		topbl_mutex.lock();
 		printf("access, nlist: %d\n", nlisteners);
 		++nlisteners;
@@ -84,7 +84,7 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 		topbl_mutex.unlock();
 		response = MHD_create_response_from_callback(MHD_SIZE_UNKNOWN, 1024,
 				&callback, NULL, NULL);
-		MHD_add_response_header(response, "Content-Type", "audio/wav");
+		MHD_add_response_header(response, "Content-Type", "audio/ogg");
 		MHD_add_response_header(response, MHD_HTTP_HEADER_EXPIRES, "0");
 		MHD_add_response_header(response, MHD_HTTP_HEADER_PRAGMA,
 				"no-cache");
