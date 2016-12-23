@@ -66,7 +66,7 @@ const char *stream_name(const char *url)
 		return nullptr;
 }
 
-top_block_sptr bl;
+top_block_sptr topbl;
 
 int answer(void *cls, struct MHD_Connection *con, const char *url,
 		const char *method, const char *version,
@@ -98,20 +98,20 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 		topbl_mutex.lock();
 		printf("access, nlist: %d\n", nlisteners);
 		++nlisteners;
-		bl->lock();
+		topbl->lock();
 		if (rec != nullptr)
 			rec->disconnect();
 		rec = nullptr;
 		if (pipe(fds)) {
 			perror("pipe");
-			bl->unlock();
+			topbl->unlock();
 			topbl_mutex.unlock();
 			return MHD_NO;
 		}
-		rec = receiver::make(src, bl, fds[1]);
-		bl->unlock();
+		rec = receiver::make(src, topbl, fds[1]);
+		topbl->unlock();
 		if (nlisteners == 1)
-			bl->start();
+			topbl->start();
 		topbl_mutex.unlock();
 		response = MHD_create_response_from_callback(MHD_SIZE_UNKNOWN, 1024,
 				&callback, fds, NULL);
@@ -157,12 +157,12 @@ void request_completed(void *cls, struct MHD_Connection *connection,
 	printf("compl, nlist: %d\n", nlisteners);
 	--nlisteners;
 	if (nlisteners == 0) {
-		bl->stop();
-		bl->wait();
-		bl->lock();
+		topbl->stop();
+		topbl->wait();
+		topbl->lock();
 		rec->disconnect();
 		rec = nullptr;
-		bl->unlock();
+		topbl->unlock();
 		close(fds[0]);
 		close(fds[1]);
 	}
@@ -203,7 +203,7 @@ int main()
 		return 1;
 	}
 
-	bl = make_top_block("bla");
+	topbl = make_top_block("bla");
 	src = osmosdr::source::make();
 
 	src->set_sample_rate(src_rate);
@@ -218,8 +218,8 @@ int main()
 	src->set_bandwidth(0.0);
 
 	getchar();
-	bl->stop();
-	bl->wait();
+	topbl->stop();
+	topbl->wait();
 
 	MHD_stop_daemon(daemon);
 
