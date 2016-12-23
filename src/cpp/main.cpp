@@ -21,9 +21,8 @@ int nlisteners;
 
 receiver::sptr rec;
 osmosdr::source::sptr src;
-const char *fifo_name = "/tmp/wav-fifo";
 
-int rfd;
+int fds[2];
 
 ssize_t callback(void *cls, uint64_t pos, char *buf, size_t max)
 {
@@ -31,7 +30,7 @@ ssize_t callback(void *cls, uint64_t pos, char *buf, size_t max)
 
 	(void) cls;
 	(void) pos;
-	ret = read(rfd, buf, max);
+	ret = read(fds[0], buf, max);
 	if (ret < 0) {
 		if (errno == EAGAIN) {
 			return 0;
@@ -77,7 +76,14 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 		bl->lock();
 		if (rec != nullptr)
 			rec->disconnect();
-		rec = receiver::make(src, bl, fifo_name);
+		rec = nullptr;
+		if (pipe(fds)) {
+			perror("pipe");
+			bl->unlock();
+			topbl_mutex.unlock();
+			return MHD_NO;
+		}
+		rec = receiver::make(src, bl, fds[1]);
 		bl->unlock();
 		if (nlisteners == 1)
 			bl->start();
@@ -132,6 +138,8 @@ void request_completed(void *cls, struct MHD_Connection *connection,
 		rec->disconnect();
 		rec = nullptr;
 		bl->unlock();
+		close(fds[0]);
+		close(fds[1]);
 	}
 	topbl_mutex.unlock();
 	puts("request_completed returning");
@@ -158,16 +166,6 @@ int main()
 {
 	double src_rate = 2000000.0;
 	struct MHD_Daemon *daemon;
-	int flags;
-
-	if (mknod(fifo_name, 0600 | S_IFIFO, 0) == -1) {
-		perror("mknod");
-		return 1;
-	}
-	rfd = open(fifo_name, O_RDONLY | O_NONBLOCK);
-	fcntl(rfd, F_SETPIPE_SZ, getpagesize());
-	flags = fcntl(rfd, F_GETFL, 0);
-	fcntl(rfd, F_SETFL, ~O_NONBLOCK & flags);
 
 	daemon = MHD_start_daemon(MHD_USE_DEBUG | MHD_USE_POLL_INTERNALLY
 			| MHD_USE_THREAD_PER_CONNECTION,
@@ -199,7 +197,6 @@ int main()
 	bl->wait();
 
 	MHD_stop_daemon(daemon);
-	remove(fifo_name);
 
 	return 0;
 }
