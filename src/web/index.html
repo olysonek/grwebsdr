@@ -14,7 +14,7 @@
 	var AudioContext = window.AudioContext || window.webkitAudioContext;
 	var audioCtx = new AudioContext
 	var audio = new Audio();
-	audio.src = 'stream.ogg';
+	audio.src = Math.random().toString(36).substr(2, 4) + '.ogg';
 	audio.controls = false;
 	audio.autoplay = true;
 	document.body.appendChild(audio);
