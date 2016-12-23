@@ -10,6 +10,7 @@
 #include <atomic>
 #include <mutex>
 #include <cstring>
+#include <unordered_map>
 
 #define PORT 8080
 #define STREAM_NAME_LEN 8
@@ -19,10 +20,9 @@ using namespace std;
 
 atomic_int con_num;
 mutex topbl_mutex;
-int nlisteners;
 
-receiver::sptr rec;
 osmosdr::source::sptr src;
+unordered_map<string, receiver::sptr> receiver_map;
 
 int fds[2];
 
@@ -86,35 +86,39 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 	(void) upload_data;
 	(void) upload_data_size;
 
-	if (*con_cls != &answer) {
-		*con_cls = (void *) &answer;
-		return MHD_YES;
+	if (!*con_cls) {
+		*con_cls = strdup(url);
+		return *con_cls ? MHD_YES : MHD_NO;
 	}
-	*con_cls = NULL;
+
 	if (strcmp(method, MHD_HTTP_METHOD_GET) != 0)
 		return MHD_NO;
 	stream = stream_name(url);
 	if (stream) {
+		int pipe_fds[2];
+		receiver::sptr rec;
+
 		topbl_mutex.lock();
-		printf("access, nlist: %d\n", nlisteners);
-		++nlisteners;
+		printf("access, nlist: %lu\n", receiver_map.size());
+		if (receiver_map.find(stream) != receiver_map.end()) {
+			topbl_mutex.unlock();
+			return MHD_NO;
+		}
 		topbl->lock();
-		if (rec != nullptr)
-			rec->disconnect();
-		rec = nullptr;
-		if (pipe(fds)) {
+		if (pipe(pipe_fds)) {
 			perror("pipe");
 			topbl->unlock();
 			topbl_mutex.unlock();
 			return MHD_NO;
 		}
-		rec = receiver::make(src, topbl, fds[1]);
+		rec = receiver::make(src, topbl, pipe_fds);
+		receiver_map[stream] = rec;
 		topbl->unlock();
-		if (nlisteners == 1)
+		if (receiver_map.size() == 1)
 			topbl->start();
 		topbl_mutex.unlock();
 		response = MHD_create_response_from_callback(MHD_SIZE_UNKNOWN, 1024,
-				&callback, fds, NULL);
+				&callback, rec->get_fd(), NULL);
 		MHD_add_response_header(response, "Content-Type", "audio/ogg");
 		MHD_add_response_header(response, MHD_HTTP_HEADER_EXPIRES, "0");
 		MHD_add_response_header(response, MHD_HTTP_HEADER_PRAGMA,
@@ -146,25 +150,24 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 void request_completed(void *cls, struct MHD_Connection *connection,
 		void **con_cls, enum MHD_RequestTerminationCode toe)
 {
+	const char *stream;
 	puts("request_completed called");
 	(void) cls;
 	(void) connection;
-	(void) con_cls;
 
 	if (toe != MHD_REQUEST_TERMINATED_CLIENT_ABORT)
 		return;
+	stream = stream_name((char *) *con_cls);
+	if (!stream)
+		return;
 	topbl_mutex.lock();
-	printf("compl, nlist: %d\n", nlisteners);
-	--nlisteners;
-	if (nlisteners == 0) {
+	printf("compl, nlist: %lu\n", receiver_map.size());
+	if (receiver_map.size() == 1) {
 		topbl->stop();
 		topbl->wait();
 		topbl->lock();
-		rec->disconnect();
-		rec = nullptr;
+		receiver_map.erase(stream);
 		topbl->unlock();
-		close(fds[0]);
-		close(fds[1]);
 	}
 	topbl_mutex.unlock();
 	puts("request_completed returning");

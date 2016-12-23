@@ -22,13 +22,15 @@ class receiver {
 public:
 	typedef boost::shared_ptr<receiver> sptr;
 	static sptr make(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
-			int fd);
+			int fds[2]);
 	void set_center_freq(double freq);
 	void disconnect();
+	int *get_fd();
+	~receiver();
 
 private:
 	classa objecta;
-	receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl, int fd);
+	receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl, int fds[2]);
 	osmosdr::source::sptr src;
 	gr::top_block_sptr top_bl;
 	gr::filter::freq_xlating_fir_filter_ccc::sptr xlate;
@@ -36,4 +38,5 @@ private:
 	gr::filter::fir_filter_fff::sptr low_pass;
 	gr::filter::rational_resampler_base_fff::sptr resampler;
 	ogg_sink::sptr sink;
+	int fds[2];
 };

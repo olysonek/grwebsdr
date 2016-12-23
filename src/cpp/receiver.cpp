@@ -53,18 +53,22 @@ std::vector<gr_complex> taps_f2c(std::vector<float> vec)
 }
 
 receiver::sptr receiver::make(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
-			int fd)
+			int fds[2])
 {
-	return boost::shared_ptr<receiver>(new receiver(src, top_bl, fd));
+	return boost::shared_ptr<receiver>(new receiver(src, top_bl, fds));
 }
 
-receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl, int fd)
+receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
+		int fds[2])
 	: src(src), top_bl(top_bl)
 {
 	double src_rate = src->get_sample_rate();
 	int dec1 = 8; // Pre-demodulation decimation
 	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
 	int dec2 = dec1_rate / 1000; // Decimate down to 1kHz
+
+	this->fds[0] = fds[0];
+	this->fds[1] = fds[1];
 
 	xlate = freq_xlating_fir_filter_ccc::make(dec1,
 			taps_f2c(firdes::low_pass(1.0, src_rate, 75000, 25000)),
@@ -79,13 +83,20 @@ receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl, int fd)
 	resampler = rational_resampler_base_fff::make(48, dec2,
 			filter_f(48, dec2, 0.4f));
 
-	sink = ogg_sink::make(fd, 1, 48000);
+	sink = ogg_sink::make(fds[1], 1, 48000);
 
 	top_bl->connect(src, 0, xlate, 0);
 	top_bl->connect(xlate, 0, demod, 0);
 	top_bl->connect(demod, 0, low_pass, 0);
 	top_bl->connect(low_pass, 0, resampler, 0);
 	top_bl->connect(resampler, 0, sink, 0);
+}
+
+receiver::~receiver()
+{
+	disconnect();
+	close(fds[0]);
+	close(fds[1]);
 }
 
 void receiver::disconnect()
@@ -100,4 +111,9 @@ void receiver::disconnect()
 void receiver::set_center_freq(double freq)
 {
 	xlate->set_center_freq(freq);
+}
+
+int *receiver::get_fd()
+{
+	return fds;
 }
