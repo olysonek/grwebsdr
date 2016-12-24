@@ -93,6 +93,7 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 
 	if (strcmp(method, MHD_HTTP_METHOD_GET) != 0)
 		return MHD_NO;
+	printf("URL requested: %s\n", url);
 	stream = stream_name(url);
 	if (stream) {
 		int pipe_fds[2];
@@ -104,13 +105,12 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 			topbl_mutex.unlock();
 			return MHD_NO;
 		}
-		topbl->lock();
 		if (pipe(pipe_fds)) {
 			perror("pipe");
-			topbl->unlock();
 			topbl_mutex.unlock();
 			return MHD_NO;
 		}
+		topbl->lock();
 		rec = receiver::make(src, topbl, pipe_fds);
 		receiver_map.emplace(stream, rec);
 		topbl->unlock();
@@ -151,12 +151,10 @@ void request_completed(void *cls, struct MHD_Connection *connection,
 		void **con_cls, enum MHD_RequestTerminationCode toe)
 {
 	const char *stream;
-	puts("request_completed called");
+	printf("request_completed called, toe: %d\n", (int) toe);
 	(void) cls;
 	(void) connection;
 
-	if (toe != MHD_REQUEST_TERMINATED_CLIENT_ABORT)
-		return;
 	stream = stream_name((char *) *con_cls);
 	if (!stream)
 		return;
