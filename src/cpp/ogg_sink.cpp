@@ -76,7 +76,8 @@ void ogg_sink::print_page(void)
         for (len = 0; len < og.header_len;) {
                 long tmp = write(fd, og.header + len, og.header_len - len);
                 if (tmp <= 0)
-			throw runtime_error("write failed");
+			throw runtime_error(string("write failed")
+					+ string(strerror(errno)));
                 len += tmp;
         }
         for (len = 0; len < og.body_len;) {
