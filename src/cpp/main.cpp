@@ -215,10 +215,7 @@ int main()
 	src->set_freq_corr(0.0);
 	src->set_dc_offset_mode(0);
 	src->set_iq_balance_mode(0);
-	src->set_gain_mode(false);
-	src->set_gain(10.0);
-	src->set_if_gain(20.0);
-	src->set_bb_gain(20.0);
+	src->set_gain_mode(true);
 	src->set_bandwidth(0.0);
 
 	getchar();
