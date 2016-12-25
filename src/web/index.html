@@ -2,29 +2,34 @@
 <html>
 <body>
 <script>
-/*
-	ws = new WebSocket('ws://localhost:8000')
+	var stream_name = Math.random().toString(36).substr(2, 4) + '.ogg';
+
+	ws = new WebSocket('ws://' + window.location.hostname + ':8081');
 	ws.onopen = function (event) {
-		ws.send('0');
+		send_freq('0');
 	};
 	function send_freq(val) {
-		ws.send(val);
+		ws.send(stream_name + ' ' + val);
 	}
-*/
+
+	function change_freq(val) {
+		document.getElementById('lbl_freq').innerHTML = 'Freq: ' + val;
+	}
+
 	var AudioContext = window.AudioContext || window.webkitAudioContext;
 	var audioCtx = new AudioContext
 	var audio = new Audio();
-	audio.src = Math.random().toString(36).substr(2, 4) + '.ogg';
+	audio.src = stream_name;
 	audio.controls = false;
 	audio.autoplay = true;
 	document.body.appendChild(audio);
 	var src = audioCtx.createMediaElementSource(audio);
 	src.connect(audioCtx.destination);
 </script>
-<!--
-	<label for="freq">Freq</label>
+	<label id="lbl_freq" for="freq">Freq: 0</label>
 	<input type="range" id="freq" min="-1000000" max="1000000" value="0"
-		style="border: 1px" onchange="send_freq(this.value)">
--->
+		step="1" style="border: 1px; width: 90%"
+		onchange="send_freq(this.value)"
+		oninput="change_freq(this.value)">
 </body>
 </html>

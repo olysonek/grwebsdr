@@ -1,3 +1,6 @@
+#ifndef RECEIVER_H
+#define RECEIVER_H
+
 #include "ogg_sink.h"
 #include <boost/shared_ptr.hpp>
 #include <gnuradio/top_block.h>
@@ -40,3 +43,5 @@ private:
 	ogg_sink::sptr sink;
 	int fds[2];
 };
+
+#endif

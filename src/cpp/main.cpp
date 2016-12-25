@@ -1,4 +1,5 @@
 #include "receiver.h"
+#include "stuff.h"
 #include <iostream>
 #include <cmath>
 #include <cstdio>
@@ -11,9 +12,9 @@
 #include <mutex>
 #include <cstring>
 #include <unordered_map>
+#include <pthread.h>
 
 #define PORT 8080
-#define STREAM_NAME_LEN 8
 
 using namespace gr;
 using namespace std;
@@ -118,7 +119,7 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 			topbl->start();
 		topbl_mutex.unlock();
 		response = MHD_create_response_from_callback(MHD_SIZE_UNKNOWN, 1024,
-				&callback, rec->get_fd(), NULL);
+				&callback, rec->get_fd(), nullptr);
 		MHD_add_response_header(response, "Content-Type", "audio/ogg");
 		MHD_add_response_header(response, MHD_HTTP_HEADER_EXPIRES, "0");
 		MHD_add_response_header(response, MHD_HTTP_HEADER_PRAGMA,
@@ -193,14 +194,19 @@ int main()
 {
 	double src_rate = 2000000.0;
 	struct MHD_Daemon *daemon;
+	pthread_t ws_thread;
 
+	if (pthread_create(&ws_thread, nullptr, &ws_loop, nullptr)) {
+		fprintf(stderr, "Failed to create Websocket thread\n");
+		return 1;
+	}
 	daemon = MHD_start_daemon(MHD_USE_DEBUG | MHD_USE_POLL_INTERNALLY
 			| MHD_USE_THREAD_PER_CONNECTION,
-			PORT, NULL, NULL, &answer, NULL,
-			MHD_OPTION_NOTIFY_COMPLETED, &request_completed, NULL,
-			MHD_OPTION_NOTIFY_CONNECTION, &connection_cb, NULL,
+			PORT, nullptr, nullptr, &answer, nullptr,
+			MHD_OPTION_NOTIFY_COMPLETED, &request_completed, nullptr,
+			MHD_OPTION_NOTIFY_CONNECTION, &connection_cb, nullptr,
 			MHD_OPTION_END);
-	if (daemon == NULL) {
+	if (daemon == nullptr) {
 		fprintf(stderr, "Failed to create MHD daemon.\n");
 		return 1;
 	}
