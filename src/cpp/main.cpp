@@ -22,7 +22,7 @@ using namespace std;
 atomic_int con_num;
 mutex topbl_mutex;
 
-osmosdr::source::sptr src;
+osmosdr::source::sptr osmosdr_src;
 unordered_map<string, receiver::sptr> receiver_map;
 
 int fds[2];
@@ -112,7 +112,7 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 			return MHD_NO;
 		}
 		topbl->lock();
-		rec = receiver::make(src, topbl, pipe_fds);
+		rec = receiver::make(osmosdr_src, topbl, pipe_fds);
 		receiver_map.emplace(stream, rec);
 		topbl->unlock();
 		if (receiver_map.size() == 1)
@@ -212,15 +212,15 @@ int main()
 	}
 
 	topbl = make_top_block("bla");
-	src = osmosdr::source::make();
+	osmosdr_src = osmosdr::source::make();
 
-	src->set_sample_rate(src_rate);
-	src->set_center_freq(102300000.0);
-	src->set_freq_corr(0.0);
-	src->set_dc_offset_mode(0);
-	src->set_iq_balance_mode(0);
-	src->set_gain_mode(true);
-	src->set_bandwidth(0.0);
+	osmosdr_src->set_sample_rate(src_rate);
+	osmosdr_src->set_center_freq(102300000.0);
+	osmosdr_src->set_freq_corr(0.0);
+	osmosdr_src->set_dc_offset_mode(0);
+	osmosdr_src->set_iq_balance_mode(0);
+	osmosdr_src->set_gain_mode(true);
+	osmosdr_src->set_bandwidth(0.0);
 
 	getchar();
 	topbl->stop();

@@ -10,8 +10,18 @@
 		var msg = JSON.parse(event.data);
 		if (msg.hasOwnProperty('stream_name')) {
 			init_audio(msg.stream_name);
+			put_center_freq(msg);
 		}
 	};
+
+	function put_center_freq(msg) {
+		if (msg.hasOwnProperty('center_freq')) {
+			var elem = document.getElementById('lbl_center_freq');
+			var freq = msg.center_freq;
+			elem.innerHTML = 'Center frequency: ' + freq;
+		}
+	}
+
 	function send_freq(val) {
 		ws.send('{"freq_offset":' + val + '}');
 	}
@@ -25,10 +35,11 @@
 	}
 
 </script>
-	<label id="lbl_freq" for="freq">Freq: 0</label>
+	<label id="lbl_freq" for="freq">Freq: 0</label><br>
 	<input type="range" id="freq" min="-1000000" max="1000000" value="0"
 		step="1" style="border: 1px; width: 90%"
 		onchange="send_freq(this.value)"
-		oninput="change_freq(this.value)">
+		oninput="change_freq(this.value)"><br>
+	<label id="lbl_center_freq"></label>
 </body>
 </html>
