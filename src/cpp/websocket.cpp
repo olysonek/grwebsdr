@@ -1,40 +1,69 @@
 #include "stuff.h"
+#include <atomic>
 #include <libwebsockets.h>
 #include <string.h>
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 #define MAX_PAYLOAD 4096
 
 using namespace std;
 
-struct data {
-	unsigned char buf[LWS_PRE + MAX_PAYLOAD];
-	unsigned int len;
+atomic_int ws_id(0);
+
+struct user_data {
+	string stream_name;
+	bool stream_name_sent;
+	char buf[LWS_PRE + MAX_PAYLOAD];
 };
 
 static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 		void *user, void *in, size_t len)
 {
+	struct user_data *data = (struct user_data *) user;
 	(void) wsi;
-	(void) user;
 
 	switch (reason) {
-	case LWS_CALLBACK_SERVER_WRITEABLE:
+	case LWS_CALLBACK_SERVER_WRITEABLE: {
+		if (!data->stream_name_sent) {
+			char *buf = data->buf + LWS_PRE;
+			strcpy(buf, "{\"stream_name\":\"");
+			strcat(buf, data->stream_name.c_str());
+			strcat(buf, "\"}");
+			lws_write(wsi, (unsigned char *) data->buf + LWS_PRE,
+					strlen(data->buf + LWS_PRE),
+					LWS_WRITE_TEXT);
+			data->stream_name_sent = true;
+		}
 		break;
+	}
 	case LWS_CALLBACK_RECEIVE: {
 		string stream_name;
-		string msg((char *) in, len);
+		char *start;
+		unsigned int len;
+		start = (char *) in + strcspn((char *) in, "0123456789");
+		len = strspn(start, "0123456789");
+		string msg(start, len);
 		istringstream s(msg);
 		int offset;
-		s >> stream_name;
 		s >> offset;
-		if (stream_name.length() != STREAM_NAME_LEN)
-			break;
 		topbl_mutex.lock();
-		if (receiver_map.find(stream_name) == receiver_map.end())
+		if (receiver_map.find(data->stream_name) == receiver_map.end()) {
+			topbl_mutex.unlock();
 			break;
-		receiver_map[stream_name]->set_center_freq(offset);
+		}
+		receiver_map[data->stream_name]->set_center_freq(offset);
 		topbl_mutex.unlock();
+		break;
+	}
+	case LWS_CALLBACK_ESTABLISHED: {
+		int id = ws_id.fetch_add(1);
+		stringstream s;
+		s << setbase(36) << setfill('0') << setw(4) << id;
+		data->stream_name = s.str() + string(".ogg");
+		data->stream_name_sent = false;
+		lws_callback_on_writable(wsi);
 		break;
 	}
 	default:
@@ -44,7 +73,7 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 }
 
 static const struct lws_protocols protocols[] = {
-	{ "", &ws_callback, sizeof(struct data), MAX_PAYLOAD, 0, nullptr},
+	{ "", &ws_callback, sizeof(struct user_data), MAX_PAYLOAD, 0, nullptr},
 	{ nullptr, nullptr, 0, 0, 0, nullptr}
 };
 
