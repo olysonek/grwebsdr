@@ -7,7 +7,8 @@ all: main.cpp receiver.cpp receiver.h ogg_sink.h ogg_sink.cpp stuff.h \
 		-lgnuradio-osmosdr -lboost_system  -lgnuradio-pmt \
 		-lgnuradio-filter -lgnuradio-audio -lgnuradio-analog \
 		-lgnuradio-runtime -lgnuradio-blocks -lmicrohttpd \
-		-lvorbisenc -lvorbis -logg -pthread -lwebsockets
+		-lvorbisenc -lvorbis -logg -pthread -lwebsockets \
+		-ljson-c
 
 clean:
 	rm -f main

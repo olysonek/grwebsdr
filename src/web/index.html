@@ -13,7 +13,7 @@
 		}
 	};
 	function send_freq(val) {
-		ws.send('{"freq_offset":"' + val + '"}');
+		ws.send('{"freq_offset":' + val + '}');
 	}
 
 	function change_freq(val) {

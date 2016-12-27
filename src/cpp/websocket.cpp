@@ -5,18 +5,41 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <json-c/json_tokener.h>
+#include <cstdio>
 
 #define MAX_PAYLOAD 4096
 
 using namespace std;
 
 atomic_int ws_id(0);
+struct json_tokener *tok;
 
 struct user_data {
 	string stream_name;
 	bool stream_name_sent;
 	char buf[LWS_PRE + MAX_PAYLOAD];
 };
+
+void change_freq_offset(struct user_data *data, struct json_object *obj)
+{
+	int offset;
+	struct json_object *offset_obj;
+
+	if (!json_object_object_get_ex(obj, "freq_offset", &offset_obj)
+			|| json_object_get_type(offset_obj) != json_type_int)
+		return;
+	json_object_get(offset_obj);
+	offset = json_object_get_int(offset_obj);
+	topbl_mutex.lock();
+	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
+		topbl_mutex.unlock();
+		return;
+	}
+	receiver_map[data->stream_name]->set_center_freq(offset);
+	topbl_mutex.unlock();
+	json_object_put(offset_obj);
+}
 
 static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 		void *user, void *in, size_t len)
@@ -39,22 +62,16 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 		break;
 	}
 	case LWS_CALLBACK_RECEIVE: {
-		string stream_name;
-		char *start;
-		unsigned int len;
-		start = (char *) in + strcspn((char *) in, "0123456789");
-		len = strspn(start, "0123456789");
-		string msg(start, len);
-		istringstream s(msg);
-		int offset;
-		s >> offset;
-		topbl_mutex.lock();
-		if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-			topbl_mutex.unlock();
+		struct json_object *obj;
+
+		obj = json_tokener_parse_ex(tok, (char *) in, len);
+		if (!obj) {
+			puts("json parsing failed");
 			break;
 		}
-		receiver_map[data->stream_name]->set_center_freq(offset);
-		topbl_mutex.unlock();
+		json_tokener_reset(tok);
+		change_freq_offset(data, obj);
+		json_object_put(obj);
 		break;
 	}
 	case LWS_CALLBACK_ESTABLISHED: {
@@ -83,6 +100,12 @@ void *ws_loop(void *arg)
 	struct lws_context_creation_info info;
 
 	(void) arg;
+
+	tok = json_tokener_new();
+	if (!tok) {
+		fprintf(stderr, "json_tokener_new failed\n");
+		return nullptr;
+	}
 
 	memset(&info, 0, sizeof(info));
 	info.port = 8081;
