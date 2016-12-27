@@ -2,6 +2,8 @@
 <html>
 <body>
 <script>
+	var center_freq = null;
+
 	ws = new WebSocket('ws://' + window.location.hostname + ':8081');
 	ws.onopen = function (event) {
 		send_freq('0');
@@ -11,13 +13,25 @@
 		if (msg.hasOwnProperty('stream_name')) {
 			init_audio(msg.stream_name);
 			put_center_freq(msg);
+			update_freq_offset();
 		}
 	};
 
+	function format_freq(freq) {
+		tmp = Math.abs(freq);
+		if (tmp >= 1000000)
+			return (freq / 1000000.0) + ' MHz';
+		else if (tmp >= 1000)
+			return (freq / 1000.0) + ' kHz';
+		else
+			return freq + ' Hz';
+	}
+
 	function put_center_freq(msg) {
 		if (msg.hasOwnProperty('center_freq')) {
+			center_freq = msg.center_freq;
 			var elem = document.getElementById('lbl_center_freq');
-			var freq = msg.center_freq;
+			var freq = format_freq(msg.center_freq);
 			elem.innerHTML = 'Center frequency: ' + freq;
 		}
 	}
@@ -26,8 +40,13 @@
 		ws.send('{"freq_offset":' + val + '}');
 	}
 
-	function change_freq(val) {
-		document.getElementById('lbl_freq').innerHTML = 'Freq: ' + val;
+	function update_freq_offset() {
+		var freq = parseInt(document.getElementById('freq_offset').value);
+		if (center_freq != null)
+			freq += center_freq;
+		freq = format_freq(freq);
+		var elem = document.getElementById('lbl_freq_offset');
+		elem.innerHTML = 'Freq: ' + freq;
 	}
 
 	function init_audio(stream_name) {
@@ -35,11 +54,11 @@
 	}
 
 </script>
-	<label id="lbl_freq" for="freq">Freq: 0</label><br>
-	<input type="range" id="freq" min="-1000000" max="1000000" value="0"
+	<label id="lbl_freq_offset" for="freq_offset">Freq: 0</label><br>
+	<input type="range" id="freq_offset" min="-1000000" max="1000000" value="0"
 		step="1" style="border: 1px; width: 90%"
 		onchange="send_freq(this.value)"
-		oninput="change_freq(this.value)"><br>
+		oninput="update_freq_offset()"><br>
 	<label id="lbl_center_freq"></label>
 </body>
 </html>
