@@ -17,7 +17,7 @@ struct json_tokener *tok;
 
 struct user_data {
 	string stream_name;
-	bool stream_name_sent;
+	bool initialized;
 	char buf[LWS_PRE + MAX_PAYLOAD];
 };
 
@@ -29,7 +29,6 @@ void change_freq_offset(struct user_data *data, struct json_object *obj)
 	if (!json_object_object_get_ex(obj, "freq_offset", &offset_obj)
 			|| json_object_get_type(offset_obj) != json_type_int)
 		return;
-	json_object_get(offset_obj);
 	offset = json_object_get_int(offset_obj);
 	topbl_mutex.lock();
 	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
@@ -38,7 +37,24 @@ void change_freq_offset(struct user_data *data, struct json_object *obj)
 	}
 	receiver_map[data->stream_name]->set_center_freq(offset);
 	topbl_mutex.unlock();
-	json_object_put(offset_obj);
+}
+
+void init_ws_con(struct lws *wsi, struct user_data *data)
+{
+	struct json_object *obj;
+	struct json_object *tmp;
+	char *buf = data->buf + LWS_PRE;
+
+	obj = json_object_new_object();
+	tmp = json_object_new_string(data->stream_name.c_str());
+	json_object_object_add(obj, "stream_name", tmp);
+
+	strcpy(buf, "{\"stream_name\":\"");
+	strcat(buf, data->stream_name.c_str());
+	strcat(buf, "\"}");
+	strcpy(buf, json_object_get_string(obj));
+	json_object_put(obj);
+	lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
 }
 
 static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
@@ -49,15 +65,9 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 
 	switch (reason) {
 	case LWS_CALLBACK_SERVER_WRITEABLE: {
-		if (!data->stream_name_sent) {
-			char *buf = data->buf + LWS_PRE;
-			strcpy(buf, "{\"stream_name\":\"");
-			strcat(buf, data->stream_name.c_str());
-			strcat(buf, "\"}");
-			lws_write(wsi, (unsigned char *) data->buf + LWS_PRE,
-					strlen(data->buf + LWS_PRE),
-					LWS_WRITE_TEXT);
-			data->stream_name_sent = true;
+		if (!data->initialized) {
+			init_ws_con(wsi, data);
+			data->initialized = true;
 		}
 		break;
 	}
@@ -79,7 +89,7 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 		stringstream s;
 		s << setbase(36) << setfill('0') << setw(4) << id;
 		data->stream_name = s.str() + string(".ogg");
-		data->stream_name_sent = false;
+		data->initialized = false;
 		lws_callback_on_writable(wsi);
 		break;
 	}
