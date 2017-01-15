@@ -4,6 +4,7 @@
 <script>
 	var hw_freq = null;
 	var privileged = false;
+	var freq_change_requested = true;
 
 	ws = new WebSocket('ws://' + window.location.hostname + ':8081');
 	ws.onopen = function (event) {
@@ -13,9 +14,9 @@
 		var msg = JSON.parse(event.data);
 		if (msg.hasOwnProperty('stream_name')) {
 			init_audio(msg.stream_name);
-			put_hw_freq(msg);
 			update_freq_offset();
 		}
+		put_hw_freq(msg);
 		if (msg.hasOwnProperty('privileged')) {
 			var btn = document.getElementById('btn_login');
 			if (privileged && !msg.privileged) {
@@ -42,10 +43,15 @@
 
 	function put_hw_freq(msg) {
 		if (msg.hasOwnProperty('hw_freq')) {
+			var changed = hw_freq != msg.hw_freq;
 			hw_freq = msg.hw_freq;
 			var elem = document.getElementById('lbl_hw_freq');
 			var freq = format_freq(msg.hw_freq);
 			elem.innerHTML = 'HW frequency: ' + freq;
+			if (!freq_change_requested && changed) {
+				alert('HW frequency changed');
+			}
+			freq_change_requested = false;
 		}
 	}
 
@@ -73,13 +79,22 @@
 			ws.send('{"login":null}');
 	}
 
+	function change_hw_freq() {
+		var freq = parseInt(document.getElementById('hw_freq').value);
+		freq_change_requested = true;
+		ws.send('{"hw_freq":' + freq + '}');
+	}
+
 </script>
 	<button type="button" id="btn_login" onclick="toggle_login()">Login</button>
+	<br>
+	<label id="lbl_hw_freq"></label><br>
 	<label id="lbl_freq_offset" for="freq_offset">Freq: 0</label><br>
 	<input type="range" id="freq_offset" min="-1000000" max="1000000" value="0"
 		step="1" style="border: 1px; width: 90%"
 		onchange="send_freq(this.value)"
 		oninput="update_freq_offset()"><br>
-	<label id="lbl_hw_freq"></label>
+	<input type="text" id="hw_freq">
+	<button type="button" id="btn_change_hw_freq" onclick="change_hw_freq()">Change HW freq</button>
 </body>
 </html>

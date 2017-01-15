@@ -12,15 +12,24 @@
 
 using namespace std;
 
-atomic_int ws_id(0);
-struct json_tokener *tok;
-
 struct user_data {
 	string stream_name;
 	bool initialized;
 	bool privileged_changed;
 	char buf[LWS_PRE + MAX_PAYLOAD];
 };
+
+static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
+		void *user, void *in, size_t len);
+
+atomic_int ws_id(0);
+struct json_tokener *tok;
+
+static const struct lws_protocols protocols[] = {
+	{ "", &ws_callback, sizeof(struct user_data), MAX_PAYLOAD, 0, nullptr},
+	{ nullptr, nullptr, 0, 0, 0, nullptr}
+};
+struct lws_context *context;
 
 void set_privileged(string stream, bool val)
 {
@@ -64,6 +73,30 @@ void change_freq_offset(struct user_data *data, struct json_object *obj)
 	topbl_mutex.unlock();
 }
 
+void change_hw_freq(struct user_data *data, struct json_object *obj)
+{
+	bool priv;
+	struct json_object *freq_obj;
+	int freq;
+
+	if (!json_object_object_get_ex(obj, "hw_freq", &freq_obj)
+			|| json_object_get_type(freq_obj) != json_type_int)
+		return;
+	freq = json_object_get_int(freq_obj);
+
+	topbl_mutex.lock();
+	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
+		topbl_mutex.unlock();
+		return;
+	}
+	priv = receiver_map[data->stream_name]->get_privileged();
+	topbl_mutex.unlock();
+	if (!priv)
+		return;
+	osmosdr_src->set_center_freq(freq);
+	lws_callback_on_writable_all_protocol(context, protocols);
+}
+
 void init_ws_con(struct lws *wsi, struct user_data *data)
 {
 	struct json_object *obj;
@@ -101,6 +134,21 @@ void send_privileged(struct lws *wsi, struct user_data *data)
 	json_object_object_add(obj, "privileged", val_obj);
 
 	strcpy(buf, json_object_get_string(obj));
+	json_object_put(obj);
+	lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
+}
+
+void send_hw_freq(struct lws *wsi, struct user_data *data)
+{
+	struct json_object *obj, *val_obj;
+	char *buf = data->buf + LWS_PRE;
+
+	obj = json_object_new_object();
+	val_obj = json_object_new_int(osmosdr_src->get_center_freq());
+	json_object_object_add(obj, "hw_freq", val_obj);
+
+	strcpy(buf, json_object_get_string(obj));
+	json_object_put(obj);
 	lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
 }
 
@@ -120,6 +168,7 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 			send_privileged(wsi, data);
 			data->privileged_changed = false;
 		}
+		send_hw_freq(wsi, data);
 		break;
 	}
 	case LWS_CALLBACK_RECEIVE: {
@@ -132,6 +181,7 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 		}
 		json_tokener_reset(tok);
 		change_freq_offset(data, obj);
+		change_hw_freq(data, obj);
 		process_authentication(data, obj);
 		json_object_put(obj);
 		lws_callback_on_writable(wsi);
@@ -152,14 +202,8 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 	return 0;
 }
 
-static const struct lws_protocols protocols[] = {
-	{ "", &ws_callback, sizeof(struct user_data), MAX_PAYLOAD, 0, nullptr},
-	{ nullptr, nullptr, 0, 0, 0, nullptr}
-};
-
 void *ws_loop(void *arg)
 {
-	struct lws_context *context;
 	struct lws_context_creation_info info;
 
 	(void) arg;
