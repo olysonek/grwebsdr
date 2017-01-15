@@ -75,7 +75,7 @@ void init_ws_con(struct lws *wsi, struct user_data *data)
 	json_object_object_add(obj, "stream_name", tmp);
 
 	tmp = json_object_new_int(osmosdr_src->get_center_freq());
-	json_object_object_add(obj, "center_freq", tmp);
+	json_object_object_add(obj, "hw_freq", tmp);
 
 	strcpy(buf, json_object_get_string(obj));
 	json_object_put(obj);

@@ -2,7 +2,7 @@
 <html>
 <body>
 <script>
-	var center_freq = null;
+	var hw_freq = null;
 	var privileged = false;
 
 	ws = new WebSocket('ws://' + window.location.hostname + ':8081');
@@ -13,7 +13,7 @@
 		var msg = JSON.parse(event.data);
 		if (msg.hasOwnProperty('stream_name')) {
 			init_audio(msg.stream_name);
-			put_center_freq(msg);
+			put_hw_freq(msg);
 			update_freq_offset();
 		}
 		if (msg.hasOwnProperty('privileged')) {
@@ -40,12 +40,12 @@
 			return freq + ' Hz';
 	}
 
-	function put_center_freq(msg) {
-		if (msg.hasOwnProperty('center_freq')) {
-			center_freq = msg.center_freq;
-			var elem = document.getElementById('lbl_center_freq');
-			var freq = format_freq(msg.center_freq);
-			elem.innerHTML = 'Center frequency: ' + freq;
+	function put_hw_freq(msg) {
+		if (msg.hasOwnProperty('hw_freq')) {
+			hw_freq = msg.hw_freq;
+			var elem = document.getElementById('lbl_hw_freq');
+			var freq = format_freq(msg.hw_freq);
+			elem.innerHTML = 'HW frequency: ' + freq;
 		}
 	}
 
@@ -55,8 +55,8 @@
 
 	function update_freq_offset() {
 		var freq = parseInt(document.getElementById('freq_offset').value);
-		if (center_freq != null)
-			freq += center_freq;
+		if (hw_freq != null)
+			freq += hw_freq;
 		freq = format_freq(freq);
 		var elem = document.getElementById('lbl_freq_offset');
 		elem.innerHTML = 'Freq: ' + freq;
@@ -80,6 +80,6 @@
 		step="1" style="border: 1px; width: 90%"
 		onchange="send_freq(this.value)"
 		oninput="update_freq_offset()"><br>
-	<label id="lbl_center_freq"></label>
+	<label id="lbl_hw_freq"></label>
 </body>
 </html>
