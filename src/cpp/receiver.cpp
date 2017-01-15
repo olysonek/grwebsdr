@@ -60,7 +60,7 @@ receiver::sptr receiver::make(osmosdr::source::sptr src, gr::top_block_sptr top_
 
 receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 		int fds[2])
-	: src(src), top_bl(top_bl)
+	: src(src), top_bl(top_bl), privileged(false)
 {
 	double src_rate = src->get_sample_rate();
 	int dec1 = 8; // Pre-demodulation decimation
@@ -116,4 +116,14 @@ void receiver::set_center_freq(double freq)
 int *receiver::get_fd()
 {
 	return fds;
+}
+
+bool receiver::get_privileged()
+{
+	return privileged;
+}
+
+void receiver::set_privileged(bool val)
+{
+	privileged = val;
 }

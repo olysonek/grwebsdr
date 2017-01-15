@@ -18,8 +18,33 @@ struct json_tokener *tok;
 struct user_data {
 	string stream_name;
 	bool initialized;
+	bool privileged_changed;
 	char buf[LWS_PRE + MAX_PAYLOAD];
 };
+
+void set_privileged(string stream, bool val)
+{
+	topbl_mutex.lock();
+	if (receiver_map.find(stream) == receiver_map.end()) {
+		topbl_mutex.unlock();
+		return;
+	}
+	receiver_map[stream]->set_privileged(val);
+	topbl_mutex.unlock();
+}
+
+void process_authentication(struct user_data *data, struct json_object *obj)
+{
+	struct json_object *tmp;
+
+	if (json_object_object_get_ex(obj, "login", &tmp)) {
+		set_privileged(data->stream_name, true);
+		data->privileged_changed = true;
+	} else if (json_object_object_get_ex(obj, "logout", &tmp)) {
+		set_privileged(data->stream_name, false);
+		data->privileged_changed = true;
+	}
+}
 
 void change_freq_offset(struct user_data *data, struct json_object *obj)
 {
@@ -60,6 +85,28 @@ void init_ws_con(struct lws *wsi, struct user_data *data)
 	lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
 }
 
+void send_privileged(struct lws *wsi, struct user_data *data)
+{
+	bool val;
+	char *buf = data->buf + LWS_PRE;
+	struct json_object *obj, *val_obj;
+
+	topbl_mutex.lock();
+	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
+		topbl_mutex.unlock();
+		return;
+	}
+	val = receiver_map[data->stream_name]->get_privileged();
+	topbl_mutex.unlock();
+
+	obj = json_object_new_object();
+	val_obj = json_object_new_boolean(val);
+	json_object_object_add(obj, "privileged", val_obj);
+
+	strcpy(buf, json_object_get_string(obj));
+	lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
+}
+
 static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 		void *user, void *in, size_t len)
 {
@@ -71,6 +118,10 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 		if (!data->initialized) {
 			init_ws_con(wsi, data);
 			data->initialized = true;
+		}
+		if (data->privileged_changed) {
+			send_privileged(wsi, data);
+			data->privileged_changed = false;
 		}
 		break;
 	}
@@ -84,7 +135,9 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 		}
 		json_tokener_reset(tok);
 		change_freq_offset(data, obj);
+		process_authentication(data, obj);
 		json_object_put(obj);
+		lws_callback_on_writable(wsi);
 		break;
 	}
 	case LWS_CALLBACK_ESTABLISHED: {

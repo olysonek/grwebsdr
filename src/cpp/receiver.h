@@ -30,6 +30,8 @@ public:
 	void disconnect();
 	int *get_fd();
 	~receiver();
+	bool get_privileged();
+	void set_privileged(bool val);
 
 private:
 	classa objecta;
@@ -42,6 +44,7 @@ private:
 	gr::filter::rational_resampler_base_fff::sptr resampler;
 	ogg_sink::sptr sink;
 	int fds[2];
+	bool privileged;
 };
 
 #endif
