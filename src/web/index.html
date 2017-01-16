@@ -22,14 +22,42 @@
 			if (privileged && !msg.privileged) {
 				privileged = false;
 				btn.innerHTML = 'Login';
+				removePrivilegedUI();
 			} else if (!privileged && msg.privileged) {
 				privileged = true;
 				btn.innerHTML = 'Logout';
+				addPrivilegedUI();
 			} else if (!privileged && !msg.privileged) {
 				alert('Login failed.');
 			}
 		}
 	};
+
+	function addPrivilegedUI() {
+		var e = document.createElement("input");
+		e.type = "text";
+		e.id = "hw_freq";
+		document.body.appendChild(e);
+		e = document.createElement("button");
+		e.id = "btn_change_hw_freq";
+		e.type = "button";
+		e.onclick = function() {
+			var freq = parseInt(document.getElementById('hw_freq').value);
+			freq_change_requested = true;
+			ws.send('{"hw_freq":' + freq + '}');
+		};
+		e.innerHTML = "Change HW freq";
+		document.body.appendChild(e);
+	}
+
+	function removePrivilegedUI() {
+		var e = document.getElementById("hw_freq");
+		e.outerHTML = "";
+		delete e;
+		e = document.getElementById("btn_change_hw_freq");
+		e.outerHTML = "";
+		delete e;
+	}
 
 	function format_freq(freq) {
 		tmp = Math.abs(freq);
@@ -79,12 +107,6 @@
 			ws.send('{"login":null}');
 	}
 
-	function change_hw_freq() {
-		var freq = parseInt(document.getElementById('hw_freq').value);
-		freq_change_requested = true;
-		ws.send('{"hw_freq":' + freq + '}');
-	}
-
 </script>
 	<button type="button" id="btn_login" onclick="toggle_login()">Login</button>
 	<br>
@@ -94,7 +116,5 @@
 		step="1" style="border: 1px; width: 90%"
 		onchange="send_freq(this.value)"
 		oninput="update_freq_offset()"><br>
-	<input type="text" id="hw_freq">
-	<button type="button" id="btn_change_hw_freq" onclick="change_hw_freq()">Change HW freq</button>
 </body>
 </html>
