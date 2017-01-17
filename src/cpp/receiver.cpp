@@ -96,7 +96,7 @@ receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 
 receiver::~receiver()
 {
-	disconnectAll();
+	disconnect_all();
 	close(fds[0]);
 	close(fds[1]);
 }
