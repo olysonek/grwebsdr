@@ -111,10 +111,10 @@ int answer(void *cls, struct MHD_Connection *con, const char *url,
 			topbl_mutex.unlock();
 			return MHD_NO;
 		}
-		topbl->lock();
 		rec = receiver::make(osmosdr_src, topbl, pipe_fds);
-		topbl->connect(osmosdr_src, 0, rec, 0);
 		receiver_map.emplace(stream, rec);
+		topbl->lock();
+		topbl->connect(osmosdr_src, 0, rec, 0);
 		topbl->unlock();
 		if (receiver_map.size() == 1)
 			topbl->start();
