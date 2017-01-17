@@ -1,5 +1,6 @@
 #include "wfm_demod.h"
 #include "utils.h"
+#include <boost/math/common_factor_rt.hpp>
 
 using namespace gr;
 using namespace gr::analog;
@@ -14,11 +15,15 @@ wfm_demod::wfm_demod(int in_rate, int out_rate)
 	: hier_block2("wfm_demod", io_signature::make(1, 1, sizeof(gr_complex)),
 			io_signature::make(1, 1, sizeof(float)))
 {
+	int div = boost::math::gcd(in_rate, out_rate);
+	int interpolation = out_rate / div;
+	int decimation = in_rate / div;
+
 	demod = quadrature_demod_cf::make(in_rate / (2 * M_PI * 75000));
 	low_pass = fir_filter_fff::make(1, firdes::low_pass(1.0, in_rate,
 				in_rate / 2 - in_rate / 1000, in_rate / 1000));
-	resampler = rational_resampler_base_fff::make(out_rate, in_rate,
-			filter_f(out_rate, in_rate, 0.4f));
+	resampler = rational_resampler_base_fff::make(interpolation, decimation,
+			filter_f(interpolation, decimation, 0.4f));
 
 	connect(self(), 0, demod, 0);
 	connect(demod, 0, low_pass, 0);
