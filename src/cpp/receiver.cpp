@@ -60,7 +60,9 @@ receiver::sptr receiver::make(osmosdr::source::sptr src, gr::top_block_sptr top_
 
 receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 		int fds[2])
-	: src(src), top_bl(top_bl), privileged(false)
+	: hier_block2("receiver", io_signature::make(1, 1, sizeof (gr_complex)),
+			io_signature::make(0, 0, 0))
+	, src(src), top_bl(top_bl), privileged(false)
 {
 	double src_rate = src->get_sample_rate();
 	int dec1 = 8; // Pre-demodulation decimation
@@ -85,27 +87,18 @@ receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 
 	sink = ogg_sink::make(fds[1], 1, 48000);
 
-	top_bl->connect(src, 0, xlate, 0);
-	top_bl->connect(xlate, 0, demod, 0);
-	top_bl->connect(demod, 0, low_pass, 0);
-	top_bl->connect(low_pass, 0, resampler, 0);
-	top_bl->connect(resampler, 0, sink, 0);
+	connect(self(), 0, xlate, 0);
+	connect(xlate, 0, demod, 0);
+	connect(demod, 0, low_pass, 0);
+	connect(low_pass, 0, resampler, 0);
+	connect(resampler, 0, sink, 0);
 }
 
 receiver::~receiver()
 {
-	disconnect();
+	disconnectAll();
 	close(fds[0]);
 	close(fds[1]);
-}
-
-void receiver::disconnect()
-{
-	top_bl->disconnect(xlate);
-	top_bl->disconnect(demod);
-	top_bl->disconnect(low_pass);
-	top_bl->disconnect(resampler);
-	//top_bl->disconnect(sink);
 }
 
 void receiver::set_center_freq(double freq)

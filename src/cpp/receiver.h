@@ -11,6 +11,7 @@
 #include <gnuradio/filter/rational_resampler_base_fff.h>
 #include <gnuradio/filter/freq_xlating_fir_filter_ccc.h>
 #include <gnuradio/blocks/wavfile_sink.h>
+#include <gnuradio/hier_block2.h>
 #include <osmosdr/source.h>
 #include <cstdio>
 
@@ -21,13 +22,12 @@ public:
 	}
 };
 
-class receiver {
+class receiver : public gr::hier_block2 {
 public:
 	typedef boost::shared_ptr<receiver> sptr;
 	static sptr make(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 			int fds[2]);
 	void set_center_freq(double freq);
-	void disconnect();
 	int *get_fd();
 	~receiver();
 	bool get_privileged();
