@@ -39,6 +39,12 @@ private:
 	ogg_sink::sptr sink;
 	int fds[2];
 	bool privileged;
+	int audio_rate;
+	enum { NO_DEMOD, WFM_DEMOD, AM_DEMOD } demod_type;
+
+	void setup_wfm();
+	void setup_am();
+	void connect_blocks();
 };
 
 #endif

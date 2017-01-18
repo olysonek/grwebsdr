@@ -1,8 +1,9 @@
 .PHONY: all
 all: main.cpp receiver.cpp receiver.h ogg_sink.h ogg_sink.cpp stuff.h \
-	websocket.cpp utils.cpp utils.h wfm_demod.cpp wfm_demod.h
+	websocket.cpp utils.cpp utils.h wfm_demod.cpp wfm_demod.h \
+	am_demod.cpp am_demod.h
 	g++ -g -O0 -Wall -Wextra main.cpp receiver.cpp ogg_sink.cpp \
-		websocket.cpp utils.cpp wfm_demod.cpp \
+		websocket.cpp utils.cpp wfm_demod.cpp  am_demod.cpp \
 		-o main \
 		-lgnuradio-osmosdr -lboost_system  -lgnuradio-pmt \
 		-lgnuradio-filter -lgnuradio-audio -lgnuradio-analog \
