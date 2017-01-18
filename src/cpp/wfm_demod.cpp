@@ -21,7 +21,7 @@ wfm_demod::wfm_demod(int in_rate, int out_rate)
 
 	demod = quadrature_demod_cf::make(in_rate / (2 * M_PI * 75000));
 	low_pass = fir_filter_fff::make(1, firdes::low_pass(1.0, in_rate,
-				in_rate / 2 - in_rate / 1000, in_rate / 1000));
+				out_rate / 2 - out_rate / 100, out_rate / 100));
 	resampler = rational_resampler_base_fff::make(interpolation, decimation,
 			filter_f(interpolation, decimation, 0.4f));
 
