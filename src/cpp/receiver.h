@@ -21,6 +21,8 @@ public:
 class receiver : public gr::hier_block2 {
 public:
 	typedef boost::shared_ptr<receiver> sptr;
+	enum demod_t { NO_DEMOD, WFM_DEMOD, AM_DEMOD };
+
 	static sptr make(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 			int fds[2]);
 	void set_center_freq(double freq);
@@ -28,6 +30,7 @@ public:
 	~receiver();
 	bool get_privileged();
 	void set_privileged(bool val);
+	void change_demod(demod_t d);
 
 private:
 	classa objecta;
@@ -40,7 +43,7 @@ private:
 	int fds[2];
 	bool privileged;
 	int audio_rate;
-	enum { NO_DEMOD, WFM_DEMOD, AM_DEMOD } demod_type;
+	demod_t demod_type;
 
 	void setup_wfm();
 	void setup_am();

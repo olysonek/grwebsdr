@@ -1,4 +1,5 @@
 #include "stuff.h"
+#include "receiver.h"
 #include <atomic>
 #include <libwebsockets.h>
 #include <string.h>
@@ -97,6 +98,34 @@ void change_hw_freq(struct user_data *data, struct json_object *obj)
 	lws_callback_on_writable_all_protocol(context, protocols);
 }
 
+void change_demod(struct user_data *data, struct json_object *obj)
+{
+	struct json_object *demod_obj;
+	const char *demod;
+	receiver::demod_t d;
+
+	if (!json_object_object_get_ex(obj, "demod", &demod_obj)
+			|| json_object_get_type(demod_obj) != json_type_string)
+		return;
+	demod = json_object_get_string(demod_obj);
+	if (!strcmp(demod, "WFM"))
+		d = receiver::WFM_DEMOD;
+	else if (!strcmp(demod, "AM"))
+		d = receiver::AM_DEMOD;
+	else
+		return;
+
+	topbl_mutex.lock();
+	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
+		topbl_mutex.unlock();
+		return;
+	}
+	topbl->lock();
+	receiver_map[data->stream_name]->change_demod(d);
+	topbl->unlock();
+	topbl_mutex.unlock();
+}
+
 void init_ws_con(struct lws *wsi, struct user_data *data)
 {
 	struct json_object *obj;
@@ -109,6 +138,9 @@ void init_ws_con(struct lws *wsi, struct user_data *data)
 
 	tmp = json_object_new_int(osmosdr_src->get_center_freq());
 	json_object_object_add(obj, "hw_freq", tmp);
+
+	tmp = json_object_new_string("WFM");
+	json_object_object_add(obj, "demod", tmp);
 
 	strcpy(buf, json_object_get_string(obj));
 	json_object_put(obj);
@@ -182,6 +214,7 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 		json_tokener_reset(tok);
 		change_freq_offset(data, obj);
 		change_hw_freq(data, obj);
+		change_demod(data, obj);
 		process_authentication(data, obj);
 		json_object_put(obj);
 		lws_callback_on_writable(wsi);

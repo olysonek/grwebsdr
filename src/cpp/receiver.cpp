@@ -29,7 +29,7 @@ receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 	this->fds[1] = fds[1];
 
 	sink = ogg_sink::make(fds[1], 1, audio_rate);
-	setup_wfm();
+	setup_am();
 }
 
 receiver::~receiver()
@@ -62,7 +62,7 @@ void receiver::setup_am()
 	if (demod_type == AM_DEMOD)
 		return;
 	double src_rate = src->get_sample_rate();
-	int dec1 = 50; // Pre-demodulation decimation
+	int dec1 = 100; // Pre-demodulation decimation
 	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
 
 	disconnect_all();
@@ -80,6 +80,20 @@ void receiver::connect_blocks()
 	connect(self(), 0, xlate, 0);
 	connect(xlate, 0, demod, 0);
 	connect(demod, 0, sink, 0);
+}
+
+void receiver::change_demod(receiver::demod_t d)
+{
+	switch (d) {
+	case receiver::WFM_DEMOD:
+		setup_wfm();
+		break;
+	case receiver::AM_DEMOD:
+		setup_am();
+		break;
+	default:
+		return;
+	}
 }
 
 void receiver::set_center_freq(double freq)

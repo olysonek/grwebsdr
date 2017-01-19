@@ -107,6 +107,10 @@
 			ws.send('{"login":null}');
 	}
 
+	function change_demod(val) {
+		ws.send('{"demod":"' + val + '"}');
+	}
+
 </script>
 	<button type="button" id="btn_login" onclick="toggle_login()">Login</button>
 	<br>
@@ -116,5 +120,9 @@
 		step="1" style="border: 1px; width: 90%"
 		onchange="send_freq(this.value)"
 		oninput="update_freq_offset()"><br>
+	<select onchange="change_demod(this.value)">
+		<option value="WFM">WFM</option>
+		<option value="AM">AM</option>
+	</select>
 </body>
 </html>
