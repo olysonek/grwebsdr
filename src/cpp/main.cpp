@@ -194,7 +194,7 @@ void connection_cb(void *cls, struct MHD_Connection *connection,
 
 int main()
 {
-	double src_rate = 2000000.0;
+	double src_rate = 2400000.0;
 	struct MHD_Daemon *daemon;
 	pthread_t ws_thread;
 
