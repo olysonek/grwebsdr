@@ -139,6 +139,9 @@ void init_ws_con(struct lws *wsi, struct user_data *data)
 	tmp = json_object_new_int(osmosdr_src->get_center_freq());
 	json_object_object_add(obj, "hw_freq", tmp);
 
+	tmp = json_object_new_int(osmosdr_src->get_sample_rate());
+	json_object_object_add(obj, "bandwidth", tmp);
+
 	tmp = json_object_new_string("WFM");
 	json_object_object_add(obj, "demod", tmp);
 

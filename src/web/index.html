@@ -5,6 +5,7 @@
 	var hw_freq = null;
 	var privileged = false;
 	var freq_change_requested = true;
+	var bandwidth = null;
 
 	ws = new WebSocket('ws://' + window.location.hostname + ':8081');
 	ws.onopen = function (event) {
@@ -17,6 +18,7 @@
 			update_freq_offset();
 		}
 		put_hw_freq(msg);
+		put_bandwidth(msg);
 		if (msg.hasOwnProperty('privileged')) {
 			var btn = document.getElementById('btn_login');
 			if (privileged && !msg.privileged) {
@@ -32,6 +34,15 @@
 			}
 		}
 	};
+
+	function put_bandwidth(msg) {
+		if (msg.hasOwnProperty('bandwidth')) {
+			var elem = document.getElementById('freq_offset');
+			bandwidth = msg.bandwidth;
+			elem.min = -bandwidth/2;
+			elem.max = bandwidth/2;
+		}
+	}
 
 	function addPrivilegedUI() {
 		var e = document.createElement("input");
