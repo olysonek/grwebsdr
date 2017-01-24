@@ -45,11 +45,12 @@ void receiver::setup_wfm()
 	double src_rate = src->get_sample_rate();
 	int dec1 = 8; // Pre-demodulation decimation
 	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
+	int offset = xlate == nullptr ? 0 : xlate->center_freq();
 
 	disconnect_all();
 	xlate = freq_xlating_fir_filter_ccc::make(dec1,
 			taps_f2c(firdes::low_pass(1.0, src_rate, 75000, 25000)),
-			0.0, src_rate);
+			offset, src_rate);
 
 	demod = wfm_demod::make(dec1_rate, audio_rate);
 	connect_blocks();
@@ -62,12 +63,13 @@ void receiver::setup_am()
 	double src_rate = src->get_sample_rate();
 	int dec1 = 8; // Pre-demodulation decimation
 	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
+	int offset = xlate == nullptr ? 0 : xlate->center_freq();
 
 	disconnect_all();
 	xlate = freq_xlating_fir_filter_ccc::make(dec1,
 			taps_f2c(firdes::low_pass(1.0, src_rate, 10000, 500,
 			gr::filter::firdes::WIN_KAISER, 1.0)),
-			0.0, src_rate);
+			offset, src_rate);
 
 	demod = am_demod::make(dec1_rate, audio_rate);
 	connect_blocks();
