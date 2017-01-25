@@ -22,7 +22,8 @@ receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 		int fds[2])
 	: hier_block2("receiver", io_signature::make(1, 1, sizeof (gr_complex)),
 			io_signature::make(0, 0, 0))
-	, src(src), top_bl(top_bl), privileged(false), audio_rate(24000)
+	, src(src), top_bl(top_bl), privileged(false), audio_rate(24000),
+	demod_type(NO_DEMOD)
 {
 	this->fds[0] = fds[0];
 	this->fds[1] = fds[1];
@@ -40,7 +41,7 @@ receiver::~receiver()
 
 void receiver::setup_wfm()
 {
-	if (dynamic_cast<wfm_demod *>(demod.get()) != nullptr)
+	if (demod_type == WFM_DEMOD)
 		return;
 	double src_rate = src->get_sample_rate();
 	int dec1 = 8; // Pre-demodulation decimation
@@ -53,12 +54,13 @@ void receiver::setup_wfm()
 			offset, src_rate);
 
 	demod = wfm_demod::make(dec1_rate, audio_rate);
+	demod_type = WFM_DEMOD;
 	connect_blocks();
 }
 
 void receiver::setup_am()
 {
-	if (dynamic_cast<am_demod *>(demod.get()) != nullptr)
+	if (demod_type == AM_DEMOD)
 		return;
 	double src_rate = src->get_sample_rate();
 	int dec1 = 8; // Pre-demodulation decimation
@@ -72,6 +74,7 @@ void receiver::setup_am()
 			offset, src_rate);
 
 	demod = am_demod::make(dec1_rate, audio_rate);
+	demod_type = AM_DEMOD;
 	connect_blocks();
 }
 
