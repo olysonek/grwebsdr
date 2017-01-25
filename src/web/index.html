@@ -112,7 +112,14 @@
 	}
 
 	function change_freq_offset_txt() {
+		if (hw_freq == null || bandwidth == null)
+			return;
 		var val = document.getElementById('txt_freq_offset').value;
+		val -= hw_freq;
+		if (val < -bandwidth / 2 || val > bandwidth / 2) {
+			alert("Frequency out of range");
+			return;
+		}
 		document.getElementById('freq_offset').value = val;
 		update_freq_offset();
 		send_freq(val);
