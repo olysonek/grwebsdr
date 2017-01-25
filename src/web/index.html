@@ -17,8 +17,21 @@
 			init_audio(msg.stream_name);
 			update_freq_offset(0);
 		}
-		put_hw_freq(msg);
-		put_bandwidth(msg);
+		update_hw_freq(msg);
+		update_bandwidth(msg);
+		update_privileged(msg);
+	};
+
+	function update_bandwidth(msg) {
+		if (msg.hasOwnProperty('bandwidth')) {
+			var elem = document.getElementById('freq_offset');
+			bandwidth = msg.bandwidth;
+			elem.min = -bandwidth/2;
+			elem.max = bandwidth/2;
+		}
+	}
+
+	function update_privileged(msg) {
 		if (msg.hasOwnProperty('privileged')) {
 			var btn = document.getElementById('btn_login');
 			if (privileged && !msg.privileged) {
@@ -32,15 +45,6 @@
 			} else if (!privileged && !msg.privileged) {
 				alert('Login failed.');
 			}
-		}
-	};
-
-	function put_bandwidth(msg) {
-		if (msg.hasOwnProperty('bandwidth')) {
-			var elem = document.getElementById('freq_offset');
-			bandwidth = msg.bandwidth;
-			elem.min = -bandwidth/2;
-			elem.max = bandwidth/2;
 		}
 	}
 
@@ -85,7 +89,7 @@
 			return freq + ' Hz';
 	}
 
-	function put_hw_freq(msg) {
+	function update_hw_freq(msg) {
 		if (msg.hasOwnProperty('hw_freq')) {
 			var changed = hw_freq != msg.hw_freq;
 			hw_freq = msg.hw_freq;
@@ -109,8 +113,9 @@
 		if (!check_freq_offset(offset))
 			return;
 		update_freq_offset(offset);
-		// No send here. The offset gets sent only after the mouse
-		// button is released (onchange event of the range element)
+		// No send here. For performance reasons, the offset gets sent
+		// only after the mouse button is released (onchange event
+		// of the range element)
 	}
 
 	function change_freq_offset_txt() {
