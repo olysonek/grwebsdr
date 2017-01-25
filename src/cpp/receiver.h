@@ -11,13 +11,6 @@
 #include <osmosdr/source.h>
 #include <cstdio>
 
-class classa {
-public:
-	~classa() {
-		puts("destructor called\n");
-	}
-};
-
 class receiver : public gr::hier_block2 {
 public:
 	typedef boost::shared_ptr<receiver> sptr;
@@ -34,7 +27,6 @@ public:
 	void change_demod(demod_t d);
 
 private:
-	classa objecta;
 	receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl, int fds[2]);
 	osmosdr::source::sptr src;
 	gr::top_block_sptr top_bl;

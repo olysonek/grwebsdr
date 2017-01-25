@@ -213,7 +213,7 @@ int main()
 		return 1;
 	}
 
-	topbl = make_top_block("bla");
+	topbl = make_top_block("top_block");
 	osmosdr_src = osmosdr::source::make();
 
 	osmosdr_src->set_sample_rate(src_rate);

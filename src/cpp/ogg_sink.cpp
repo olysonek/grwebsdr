@@ -87,5 +87,4 @@ void ogg_sink::print_page(void)
                 len += tmp;
         }
         memset(&og, 0, sizeof(og));
-
 }
