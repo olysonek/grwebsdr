@@ -58,8 +58,13 @@ void receiver::change_demod(receiver::demod_t d)
 	switch (d) {
 	case receiver::WFM_DEMOD:
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 75000, 25000));
-		demod = fm_demod::make(dec1_rate, audio_rate);
+		demod = fm_demod::make(dec1_rate, audio_rate, 75000);
 		demod_type = WFM_DEMOD;
+		break;
+	case receiver::FM_DEMOD:
+		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 4000, 2000));
+		demod = fm_demod::make(dec1_rate, audio_rate, 4000);
+		demod_type = FM_DEMOD;
 		break;
 	case receiver::AM_DEMOD:
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 5000, 1000));

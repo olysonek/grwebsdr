@@ -11,10 +11,10 @@
 class fm_demod : public gr::hier_block2 {
 public:
 	typedef boost::shared_ptr<fm_demod> sptr;
-	static sptr make(int in_rate, int out_rate);
+	static sptr make(int in_rate, int out_rate, int cutoff);
 	~fm_demod();
 private:
-	fm_demod(int in_rate, int out_rate);
+	fm_demod(int in_rate, int out_rate, int cutoff);
 	gr::analog::quadrature_demod_cf::sptr demod;
 	gr::filter::fir_filter_fff::sptr low_pass;
 	gr::filter::rational_resampler_base_fff::sptr resampler;
