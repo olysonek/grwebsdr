@@ -108,7 +108,7 @@
 			freq += hw_freq;
 		freq = format_freq(freq);
 		var elem = document.getElementById('lbl_freq_offset');
-		elem.innerHTML = 'Freq: ' + freq;
+		elem.innerHTML = 'Center frequency: ' + freq;
 	}
 
 	function change_freq_offset_txt() {
@@ -136,20 +136,21 @@
 </script>
 	<button type="button" id="btn_login" onclick="toggle_login()">Login</button>
 	<br>
+
 	<label id="lbl_hw_freq"></label><br>
-	<label id="lbl_freq_offset" for="freq_offset">Freq: 0</label><br>
+	<label id="lbl_freq_offset" for="freq_offset">Center frequency: 0</label><br>
 	<input type="range" id="freq_offset" min="-1000000" max="1000000" value="0"
 		step="1" style="border: 1px; width: 90%"
 		onchange="send_freq(this.value)"
 		oninput="update_freq_offset()"><br>
 
 	<form action="#" onsubmit="change_freq_offset_txt()">
-		<label for="txt_freq_offset">Center freq:</label>
 		<input type="text" id="txt_freq_offset">
-		<input type="submit" value="Change center freq">
+		<input type="submit" value="Change center frequency">
 	</form><br>
 
-	<select onchange="change_demod(this.value)">
+	<label for="select_demod">Demodulation: </label>
+	<select onchange="change_demod(this.value)" id="select_demod">
 		<option value="WFM">WFM</option>
 		<option value="FM">FM</option>
 		<option value="AM">AM</option>
