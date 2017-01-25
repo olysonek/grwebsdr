@@ -114,6 +114,8 @@ void change_demod(struct user_data *data, struct json_object *obj)
 		d = receiver::AM_DEMOD;
 	else if (!strcmp(demod, "USB"))
 		d = receiver::USB_DEMOD;
+	else if (!strcmp(demod, "LSB"))
+		d = receiver::LSB_DEMOD;
 	else
 		return;
 
