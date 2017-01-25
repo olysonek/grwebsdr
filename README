@@ -1,0 +1,25 @@
+Build requirements
+On Fedora, you will need the following packages:
+gnuradio-devel
+boost-devel
+libmicrohttpd-devel
+libvorbis-devel
+libogg-devel
+libwebsockets-devel
+json-c-devel
+
+Build instructions
+$ cd src/cpp
+$ make
+
+How to run it
+$ ./main
+Now visit http://localhost:8080/ in your browser.
+
+Note that the server listens on port 8080 for HTTP and on port 8081 for
+WebSocket, so make sure those ports are open in your firewall.
+
+Known bugs
+It takes a while for the browser to start playing (initially and when changing
+the demodulation or frequency of the receiver). I believe this is due to
+browser-side buffering of the audio stream.
