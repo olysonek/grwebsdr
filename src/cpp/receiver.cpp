@@ -76,6 +76,12 @@ void receiver::change_demod(receiver::demod_t d)
 		demod = am_demod::make(dec1_rate, audio_rate);
 		demod_type = LSB_DEMOD;
 		break;
+	case receiver::CW_DEMOD:
+		taps = firdes::complex_band_pass(1.0, src_rate, 1, 500, 500,
+				firdes::WIN_KAISER, 1.0);
+		demod = am_demod::make(dec1_rate, audio_rate);
+		demod_type = CW_DEMOD;
+		break;
 	default:
 		return;
 	}
