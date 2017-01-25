@@ -21,7 +21,7 @@ public:
 class receiver : public gr::hier_block2 {
 public:
 	typedef boost::shared_ptr<receiver> sptr;
-	enum demod_t { NO_DEMOD, WFM_DEMOD, AM_DEMOD };
+	enum demod_t { NO_DEMOD, WFM_DEMOD, AM_DEMOD, USB_DEMOD };
 
 	static sptr make(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 			int fds[2]);
@@ -47,6 +47,7 @@ private:
 
 	void setup_wfm();
 	void setup_am();
+	void setup_usb();
 	void connect_blocks();
 };
 

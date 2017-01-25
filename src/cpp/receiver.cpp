@@ -77,6 +77,25 @@ void receiver::setup_am()
 	connect_blocks();
 }
 
+void receiver::setup_usb()
+{
+	if (demod_type == USB_DEMOD)
+		return;
+	double src_rate = src->get_sample_rate();
+	int dec1 = 8; // Pre-demodulation decimation
+	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
+	int offset = xlate == nullptr ? 0 : xlate->center_freq();
+
+	disconnect_all();
+	xlate = freq_xlating_fir_filter_ccc::make(dec1,
+			firdes::complex_band_pass(1.0, src_rate, 1, 5000, 1000),
+			offset, src_rate);
+
+	demod = am_demod::make(dec1_rate, audio_rate);
+	demod_type = USB_DEMOD;
+	connect_blocks();
+}
+
 void receiver::connect_blocks()
 {
 	connect(self(), 0, xlate, 0);
@@ -92,6 +111,9 @@ void receiver::change_demod(receiver::demod_t d)
 		break;
 	case receiver::AM_DEMOD:
 		setup_am();
+		break;
+	case receiver::USB_DEMOD:
+		setup_usb();
 		break;
 	default:
 		return;
