@@ -20,6 +20,8 @@ Note that the server listens on port 8080 for HTTP and on port 8081 for
 WebSocket, so make sure those ports are open in your firewall.
 
 Known bugs
-It takes a while for the browser to start playing (initially and when changing
-the demodulation or frequency of the receiver). I believe this is due to
-browser-side buffering of the audio stream.
+1. It takes a while for the browser to start playing (initially and when changing
+   the demodulation or frequency of the receiver). I believe this is due to
+   browser-side buffering of the audio stream.
+2. The SSB and especially CW demodulations are likely to sound not very good.
+   Their testing was very limited so far.
