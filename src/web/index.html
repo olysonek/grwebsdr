@@ -108,6 +108,13 @@
 		elem.innerHTML = 'Freq: ' + freq;
 	}
 
+	function change_freq_offset_txt() {
+		var val = document.getElementById('txt_freq_offset').value;
+		document.getElementById('freq_offset').value = val;
+		update_freq_offset();
+		send_freq(val);
+	}
+
 	function init_audio(stream_name) {
 		new Audio(stream_name).play();
 	}
@@ -132,6 +139,9 @@
 		step="1" style="border: 1px; width: 90%"
 		onchange="send_freq(this.value)"
 		oninput="update_freq_offset()"><br>
+	<label for="txt_freq_offset">Center freq:</label>
+	<input type="text" id="txt_freq_offset">
+	<button type="button" onclick="change_freq_offset_txt()">Change center freq</button><br>
 	<select onchange="change_demod(this.value)">
 		<option value="WFM">WFM</option>
 		<option value="AM">AM</option>
