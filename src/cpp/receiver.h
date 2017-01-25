@@ -45,9 +45,6 @@ private:
 	int audio_rate;
 	demod_t demod_type;
 
-	void setup_wfm();
-	void setup_am();
-	void setup_usb();
 	void connect_blocks();
 };
 

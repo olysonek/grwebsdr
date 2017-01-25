@@ -29,7 +29,7 @@ receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
 	this->fds[1] = fds[1];
 
 	sink = ogg_sink::make(fds[1], 1, audio_rate);
-	setup_wfm();
+	change_demod(WFM_DEMOD);
 }
 
 receiver::~receiver()
@@ -37,63 +37,6 @@ receiver::~receiver()
 	disconnect_all();
 	close(fds[0]);
 	close(fds[1]);
-}
-
-void receiver::setup_wfm()
-{
-	if (demod_type == WFM_DEMOD)
-		return;
-	double src_rate = src->get_sample_rate();
-	int dec1 = 8; // Pre-demodulation decimation
-	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
-	int offset = xlate == nullptr ? 0 : xlate->center_freq();
-
-	disconnect_all();
-	xlate = freq_xlating_fir_filter_ccc::make(dec1,
-			taps_f2c(firdes::low_pass(1.0, src_rate, 75000, 25000)),
-			offset, src_rate);
-
-	demod = wfm_demod::make(dec1_rate, audio_rate);
-	demod_type = WFM_DEMOD;
-	connect_blocks();
-}
-
-void receiver::setup_am()
-{
-	if (demod_type == AM_DEMOD)
-		return;
-	double src_rate = src->get_sample_rate();
-	int dec1 = 8; // Pre-demodulation decimation
-	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
-	int offset = xlate == nullptr ? 0 : xlate->center_freq();
-
-	disconnect_all();
-	xlate = freq_xlating_fir_filter_ccc::make(dec1,
-			taps_f2c(firdes::low_pass(1.0, src_rate, 5000, 1000)),
-			offset, src_rate);
-
-	demod = am_demod::make(dec1_rate, audio_rate);
-	demod_type = AM_DEMOD;
-	connect_blocks();
-}
-
-void receiver::setup_usb()
-{
-	if (demod_type == USB_DEMOD)
-		return;
-	double src_rate = src->get_sample_rate();
-	int dec1 = 8; // Pre-demodulation decimation
-	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
-	int offset = xlate == nullptr ? 0 : xlate->center_freq();
-
-	disconnect_all();
-	xlate = freq_xlating_fir_filter_ccc::make(dec1,
-			firdes::complex_band_pass(1.0, src_rate, 1, 5000, 1000),
-			offset, src_rate);
-
-	demod = am_demod::make(dec1_rate, audio_rate);
-	demod_type = USB_DEMOD;
-	connect_blocks();
 }
 
 void receiver::connect_blocks()
@@ -105,19 +48,34 @@ void receiver::connect_blocks()
 
 void receiver::change_demod(receiver::demod_t d)
 {
+	double src_rate = src->get_sample_rate();
+	int dec1 = 8; // Pre-demodulation decimation
+	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
+	int offset = xlate == nullptr ? 0 : xlate->center_freq();
+	vector<gr_complex> taps;
+
+	disconnect_all();
 	switch (d) {
 	case receiver::WFM_DEMOD:
-		setup_wfm();
+		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 75000, 25000));
+		demod = wfm_demod::make(dec1_rate, audio_rate);
+		demod_type = WFM_DEMOD;
 		break;
 	case receiver::AM_DEMOD:
-		setup_am();
+		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 5000, 1000));
+		demod = am_demod::make(dec1_rate, audio_rate);
+		demod_type = AM_DEMOD;
 		break;
 	case receiver::USB_DEMOD:
-		setup_usb();
+		taps = firdes::complex_band_pass(1.0, src_rate, 1, 5000, 1000);
+		demod = am_demod::make(dec1_rate, audio_rate);
+		demod_type = USB_DEMOD;
 		break;
 	default:
 		return;
 	}
+	xlate = freq_xlating_fir_filter_ccc::make(dec1, taps, offset, src_rate);
+	connect_blocks();
 }
 
 void receiver::set_center_freq(double freq)
