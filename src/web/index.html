@@ -45,27 +45,30 @@
 	}
 
 	function addPrivilegedUI() {
-		var e = document.createElement("input");
-		e.type = "text";
-		e.id = "hw_freq";
-		document.body.appendChild(e);
-		e = document.createElement("button");
-		e.id = "btn_change_hw_freq";
-		e.type = "button";
-		e.onclick = function() {
+		var form = document.createElement("form");
+		form.id = "form_hw_freq";
+		form.action = "#";
+		form.onsubmit = function() {
 			var freq = parseInt(document.getElementById('hw_freq').value);
 			freq_change_requested = true;
 			ws.send('{"hw_freq":' + freq + '}');
 		};
-		e.innerHTML = "Change HW freq";
-		document.body.appendChild(e);
+
+		var e = document.createElement("input");
+		e.type = "text";
+		e.id = "hw_freq";
+		form.appendChild(e);
+
+		e = document.createElement("input");
+		e.type = "submit";
+		e.value = "Change HW freq";
+		form.appendChild(e);
+
+		document.body.appendChild(form);
 	}
 
 	function removePrivilegedUI() {
-		var e = document.getElementById("hw_freq");
-		e.outerHTML = "";
-		delete e;
-		e = document.getElementById("btn_change_hw_freq");
+		var e = document.getElementById("form_hw_freq");
 		e.outerHTML = "";
 		delete e;
 	}
@@ -139,9 +142,13 @@
 		step="1" style="border: 1px; width: 90%"
 		onchange="send_freq(this.value)"
 		oninput="update_freq_offset()"><br>
-	<label for="txt_freq_offset">Center freq:</label>
-	<input type="text" id="txt_freq_offset">
-	<button type="button" onclick="change_freq_offset_txt()">Change center freq</button><br>
+
+	<form action="#" onsubmit="change_freq_offset_txt()">
+		<label for="txt_freq_offset">Center freq:</label>
+		<input type="text" id="txt_freq_offset">
+		<input type="submit" value="Change center freq">
+	</form><br>
+
 	<select onchange="change_demod(this.value)">
 		<option value="WFM">WFM</option>
 		<option value="FM">FM</option>
