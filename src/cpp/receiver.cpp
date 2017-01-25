@@ -69,8 +69,7 @@ void receiver::setup_am()
 
 	disconnect_all();
 	xlate = freq_xlating_fir_filter_ccc::make(dec1,
-			taps_f2c(firdes::low_pass(1.0, src_rate, 10000, 500,
-			gr::filter::firdes::WIN_KAISER, 1.0)),
+			taps_f2c(firdes::low_pass(1.0, src_rate, 5000, 1000)),
 			offset, src_rate);
 
 	demod = am_demod::make(dec1_rate, audio_rate);
