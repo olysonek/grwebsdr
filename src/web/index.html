@@ -9,13 +9,13 @@
 
 	ws = new WebSocket('ws://' + window.location.hostname + ':8081');
 	ws.onopen = function (event) {
-		send_freq('0');
+		send_freq_offset('0');
 	};
 	ws.onmessage = function(event) {
 		var msg = JSON.parse(event.data);
 		if (msg.hasOwnProperty('stream_name')) {
 			init_audio(msg.stream_name);
-			update_freq_offset();
+			update_freq_offset(0);
 		}
 		put_hw_freq(msg);
 		put_bandwidth(msg);
@@ -57,6 +57,8 @@
 		var e = document.createElement("input");
 		e.type = "text";
 		e.id = "hw_freq";
+		if (hw_freq != null)
+			e.value = hw_freq;
 		form.appendChild(e);
 
 		e = document.createElement("input");
@@ -94,35 +96,57 @@
 				alert('HW frequency changed');
 			}
 			freq_change_requested = false;
-			update_freq_offset();
+			update_freq_offset(get_freq_offset());
 		}
 	}
 
-	function send_freq(val) {
-		ws.send('{"freq_offset":' + val + '}');
+	function send_freq_offset(offset) {
+		ws.send('{"freq_offset":' + offset + '}');
 	}
 
-	function update_freq_offset() {
-		var freq = parseInt(document.getElementById('freq_offset').value);
-		if (hw_freq != null)
-			freq += hw_freq;
-		freq = format_freq(freq);
-		var elem = document.getElementById('lbl_freq_offset');
-		elem.innerHTML = 'Center frequency: ' + freq;
+	function change_freq_offset_range() {
+		var offset = parseInt(document.getElementById("freq_offset").value);
+		if (!check_freq_offset(offset))
+			return;
+		update_freq_offset(offset);
+		// No send here. The offset gets sent only after the mouse
+		// button is released (onchange event of the range element)
 	}
 
 	function change_freq_offset_txt() {
-		if (hw_freq == null || bandwidth == null)
+		if (hw_freq == null)
 			return;
-		var val = document.getElementById('txt_freq_offset').value;
-		val -= hw_freq;
-		if (val < -bandwidth / 2 || val > bandwidth / 2) {
+		var center_freq = document.getElementById("txt_center_freq").value;
+		var offset = center_freq - hw_freq;
+		if (!check_freq_offset(offset))
+			return;
+		update_freq_offset(offset);
+		send_freq_offset(offset);
+	}
+
+	function check_freq_offset(offset) {
+		if (bandwidth == null)
+			return false;
+		if (offset < -bandwidth / 2 || offset > bandwidth / 2) {
 			alert("Frequency out of range");
-			return;
+			return false;
 		}
-		document.getElementById('freq_offset').value = val;
-		update_freq_offset();
-		send_freq(val);
+		return true;
+	}
+
+	function get_freq_offset() {
+		return parseInt(document.getElementById("freq_offset").value);
+	}
+
+	function update_freq_offset(offset) {
+		document.getElementById("freq_offset").value = offset;
+		if (hw_freq == null)
+			return;
+		var center_freq = offset + hw_freq;
+		document.getElementById("txt_center_freq").value = center_freq;
+		var freq = format_freq(center_freq);
+		var elem = document.getElementById("lbl_center_freq");
+		elem.innerHTML = "Center frequency: " + freq;
 	}
 
 	function init_audio(stream_name) {
@@ -145,14 +169,15 @@
 	<br>
 
 	<label id="lbl_hw_freq"></label><br>
-	<label id="lbl_freq_offset" for="freq_offset">Center frequency: 0</label><br>
+	<label id="lbl_center_freq" for="freq_offset">Center frequency: 0</label><br>
+
 	<input type="range" id="freq_offset" min="-1000000" max="1000000" value="0"
 		step="1" style="border: 1px; width: 90%"
-		onchange="send_freq(this.value)"
-		oninput="update_freq_offset()"><br>
+		onchange="send_freq_offset(this.value)"
+		oninput="change_freq_offset_range()"><br>
 
 	<form action="#" onsubmit="change_freq_offset_txt()">
-		<input type="text" id="txt_freq_offset">
+		<input type="text" id="txt_center_freq">
 		<input type="submit" value="Change center frequency">
 	</form><br>
 
