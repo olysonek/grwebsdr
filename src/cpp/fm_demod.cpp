@@ -1,4 +1,4 @@
-#include "wfm_demod.h"
+#include "fm_demod.h"
 #include "utils.h"
 #include <boost/math/common_factor_rt.hpp>
 
@@ -6,13 +6,13 @@ using namespace gr;
 using namespace gr::analog;
 using namespace gr::filter;
 
-wfm_demod::sptr wfm_demod::make(int in_rate, int out_rate)
+fm_demod::sptr fm_demod::make(int in_rate, int out_rate)
 {
-	return boost::shared_ptr<wfm_demod>(new wfm_demod(in_rate, out_rate));
+	return boost::shared_ptr<fm_demod>(new fm_demod(in_rate, out_rate));
 }
 
-wfm_demod::wfm_demod(int in_rate, int out_rate)
-	: hier_block2("wfm_demod", io_signature::make(1, 1, sizeof(gr_complex)),
+fm_demod::fm_demod(int in_rate, int out_rate)
+	: hier_block2("fm_demod", io_signature::make(1, 1, sizeof(gr_complex)),
 			io_signature::make(1, 1, sizeof(float)))
 {
 	int div = boost::math::gcd(in_rate, out_rate);
@@ -31,7 +31,7 @@ wfm_demod::wfm_demod(int in_rate, int out_rate)
 	connect(resampler, 0, self(), 0);
 }
 
-wfm_demod::~wfm_demod()
+fm_demod::~fm_demod()
 {
 	disconnect_all();
 }

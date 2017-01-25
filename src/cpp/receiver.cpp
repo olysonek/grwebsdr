@@ -1,5 +1,5 @@
 #include "receiver.h"
-#include "wfm_demod.h"
+#include "fm_demod.h"
 #include "am_demod.h"
 #include "utils.h"
 #include <sys/types.h>
@@ -58,7 +58,7 @@ void receiver::change_demod(receiver::demod_t d)
 	switch (d) {
 	case receiver::WFM_DEMOD:
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 75000, 25000));
-		demod = wfm_demod::make(dec1_rate, audio_rate);
+		demod = fm_demod::make(dec1_rate, audio_rate);
 		demod_type = WFM_DEMOD;
 		break;
 	case receiver::AM_DEMOD:

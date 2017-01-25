@@ -8,13 +8,13 @@
 #include <gnuradio/analog/quadrature_demod_cf.h>
 #include <gnuradio/filter/firdes.h>
 
-class wfm_demod : public gr::hier_block2 {
+class fm_demod : public gr::hier_block2 {
 public:
-	typedef boost::shared_ptr<wfm_demod> sptr;
+	typedef boost::shared_ptr<fm_demod> sptr;
 	static sptr make(int in_rate, int out_rate);
-	~wfm_demod();
+	~fm_demod();
 private:
-	wfm_demod(int in_rate, int out_rate);
+	fm_demod(int in_rate, int out_rate);
 	gr::analog::quadrature_demod_cf::sptr demod;
 	gr::filter::fir_filter_fff::sptr low_pass;
 	gr::filter::rational_resampler_base_fff::sptr resampler;
