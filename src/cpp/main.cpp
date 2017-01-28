@@ -192,13 +192,40 @@ void connection_cb(void *cls, struct MHD_Connection *connection,
 	}
 }
 
-int main()
+void usage(const char *progname)
+{
+	printf("Usage: %s [options]\n\n", progname);
+	printf("Options: -h                     Print help\n");
+	printf("         -c certificate_file\n");
+	printf("         -k private_key_file\n");
+}
+
+int main(int argc, char **argv)
 {
 	double src_rate = 2400000.0;
 	struct MHD_Daemon *daemon;
 	pthread_t ws_thread;
+	websocket_data ws_data = { NULL, NULL };
+	int c;
 
-	if (pthread_create(&ws_thread, nullptr, &ws_loop, nullptr)) {
+	while ((c = getopt(argc, argv, "hc:k:")) != -1) {
+		switch (c) {
+		case 'h':
+			usage(argv[0]);
+			return 0;
+		case 'c':
+			ws_data.cert_path = optarg;
+			break;
+		case 'k':
+			ws_data.key_path = optarg;
+			break;
+		default:
+			usage(argv[0]);
+			return 1;
+		}
+	}
+
+	if (pthread_create(&ws_thread, nullptr, &ws_loop, &ws_data)) {
 		fprintf(stderr, "Failed to create Websocket thread\n");
 		return 1;
 	}

@@ -7,20 +7,35 @@
 	var freq_change_requested = true;
 	var bandwidth = null;
 
-	ws = new WebSocket('ws://' + window.location.hostname + ':8081');
-	ws.onopen = function (event) {
-		send_freq_offset('0');
-	};
-	ws.onmessage = function(event) {
-		var msg = JSON.parse(event.data);
-		if (msg.hasOwnProperty('stream_name')) {
-			init_audio(msg.stream_name);
-			update_freq_offset(0);
-		}
-		update_hw_freq(msg);
-		update_bandwidth(msg);
-		update_privileged(msg);
-	};
+	var ws_url = window.location.hostname + ':8081'
+	var ws_protocol = 'wss';
+	var ws = null;
+	setup_websocket();
+
+	function setup_websocket() {
+		ws = new WebSocket(ws_protocol + '://' + ws_url);
+		ws.onopen = function (event) {
+			send_freq_offset('0');
+		};
+		ws.onerror = function (event) {
+			if (ws.readyState == WebSocket.CLOSED && ws_protocol == 'wss') {
+				ws_protocol = 'ws';
+				setup_websocket();
+			} else {
+				alert('WebSocket error');
+			}
+		};
+		ws.onmessage = function(event) {
+			var msg = JSON.parse(event.data);
+			if (msg.hasOwnProperty('stream_name')) {
+				init_audio(msg.stream_name);
+				update_freq_offset(0);
+			}
+			update_hw_freq(msg);
+			update_bandwidth(msg);
+			update_privileged(msg);
+		};
+	}
 
 	function update_bandwidth(msg) {
 		if (msg.hasOwnProperty('bandwidth')) {

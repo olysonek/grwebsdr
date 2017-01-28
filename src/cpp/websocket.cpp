@@ -249,8 +249,7 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 void *ws_loop(void *arg)
 {
 	struct lws_context_creation_info info;
-
-	(void) arg;
+	websocket_data *data = (websocket_data *) arg;
 
 	tok = json_tokener_new();
 	if (!tok) {
@@ -264,6 +263,9 @@ void *ws_loop(void *arg)
 	info.protocols = protocols;
 	info.gid = -1;
 	info.uid = -1;
+	info.ssl_cert_filepath = data->cert_path;
+	info.ssl_private_key_filepath = data->key_path;
+	info.options |= LWS_SERVER_OPTION_REDIRECT_HTTP_TO_HTTPS;
 
 	context = lws_create_context(&info);
 	if (!context) {
