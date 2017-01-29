@@ -1,4 +1,5 @@
 #include "stuff.h"
+#include "utils.h"
 #include "receiver.h"
 #include <atomic>
 #include <libwebsockets.h>
@@ -45,11 +46,24 @@ void set_privileged(string stream, bool val)
 
 void process_authentication(struct user_data *data, struct json_object *obj)
 {
-	struct json_object *tmp;
+	struct json_object *tmp, *tmp2;
+	string user, pass;
 
 	if (json_object_object_get_ex(obj, "login", &tmp)) {
-		set_privileged(data->stream_name, true);
 		data->privileged_changed = true;
+		if (!json_object_object_get_ex(tmp, "user", &tmp2))
+			return;
+		if (json_object_get_type(tmp2) != json_type_string)
+			return;
+		user = json_object_get_string(tmp2);
+
+		if (!json_object_object_get_ex(tmp, "pass", &tmp2))
+			return;
+		if (json_object_get_type(tmp2) != json_type_string)
+			return;
+		pass = json_object_get_string(tmp2);
+		if (authenticate(user, pass))
+			set_privileged(data->stream_name, true);
 	} else if (json_object_object_get_ex(obj, "logout", &tmp)) {
 		set_privileged(data->stream_name, false);
 		data->privileged_changed = true;

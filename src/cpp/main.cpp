@@ -14,6 +14,7 @@
 #include <cstring>
 #include <unordered_map>
 #include <pthread.h>
+#include <cstdlib>
 
 #define PORT 8080
 
@@ -25,6 +26,8 @@ mutex topbl_mutex;
 
 osmosdr::source::sptr osmosdr_src;
 unordered_map<string, receiver::sptr> receiver_map;
+string username;
+string password;
 
 int fds[2];
 
@@ -201,6 +204,27 @@ void usage(const char *progname)
 	printf("         -k private_key_file\n");
 }
 
+string get_username()
+{
+	string ret;
+
+	cout << "Enter new admin user name: ";
+	cout.flush();
+	getline(cin, ret);
+	return ret;
+}
+
+string get_password()
+{
+	string ret;
+	cout << "Enter new admin password: ";
+	cout.flush();
+	system("/usr/bin/stty -echo");
+	getline(cin, ret);
+	system("/usr/bin/stty echo");
+	return ret;
+}
+
 int main(int argc, char **argv)
 {
 	double src_rate = 2400000.0;
@@ -264,6 +288,9 @@ int main(int argc, char **argv)
 		ssl_opts[0].ptr_value = 0;
 		ssl_opts[0].value = 0;
 	}
+
+	username = get_username();
+	password = get_password();
 
 	if (pthread_create(&ws_thread, nullptr, &ws_loop, &ws_data)) {
 		fprintf(stderr, "Failed to create Websocket thread\n");

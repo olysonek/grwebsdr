@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+using namespace std;
 using namespace gr::filter;
 
 /* C++ translation of the design_filter function from rational_resampler.py
@@ -91,4 +92,9 @@ char *load_file(const char *path)
 	close(fd);
 	buf[len] = 0;
 	return buf;
+}
+
+bool authenticate(string user, string pass)
+{
+	return user == username && pass == password;
 }

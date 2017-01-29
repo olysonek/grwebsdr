@@ -49,13 +49,20 @@
 	function update_privileged(msg) {
 		if (msg.hasOwnProperty('privileged')) {
 			var btn = document.getElementById('btn_login');
+			var user = document.getElementById('username');
+			var pass = document.getElementById('password');
 			if (privileged && !msg.privileged) {
 				privileged = false;
-				btn.innerHTML = 'Login';
+				btn.value = 'Login';
+				user.style.display = 'inline';
+				pass.style.display = 'inline';
 				removePrivilegedUI();
 			} else if (!privileged && msg.privileged) {
 				privileged = true;
-				btn.innerHTML = 'Logout';
+				btn.value = 'Logout';
+				user.style.display = 'none';
+				user.value = '';
+				pass.style.display = 'none';
 				addPrivilegedUI();
 			} else if (!privileged && !msg.privileged) {
 				alert('Login failed.');
@@ -174,10 +181,16 @@
 	}
 
 	function toggle_login() {
-		if (privileged)
+		if (privileged) {
 			ws.send('{"logout":null}');
-		else
-			ws.send('{"login":null}');
+		} else {
+			var obj = {};
+			obj.login = {};
+			obj.login.user = document.getElementById('username').value;
+			obj.login.pass = document.getElementById('password').value;
+			document.getElementById('password').value = '';
+			ws.send(JSON.stringify(obj));
+		}
 	}
 
 	function change_demod(val) {
@@ -185,7 +198,11 @@
 	}
 
 </script>
-	<button type="button" id="btn_login" onclick="toggle_login()">Login</button>
+	<form action="#" onsubmit="toggle_login()">
+		<input type="text" id="username">
+		<input type="password" id="password">
+		<input type="submit" value="Login" id="btn_login">
+	</form>
 	<br>
 
 	<label id="lbl_hw_freq"></label><br>
