@@ -1,5 +1,6 @@
 #include "receiver.h"
 #include "stuff.h"
+#include "utils.h"
 #include <iostream>
 #include <cmath>
 #include <cstdio>
@@ -205,8 +206,11 @@ int main(int argc, char **argv)
 	double src_rate = 2400000.0;
 	struct MHD_Daemon *daemon;
 	pthread_t ws_thread;
-	websocket_data ws_data = { NULL, NULL };
+	websocket_data ws_data = { nullptr, nullptr };
 	int c;
+	int use_ssl = 0;
+	char *cert = nullptr, *priv_key = nullptr;
+	struct MHD_OptionItem ssl_opts[3];
 
 	while ((c = getopt(argc, argv, "hc:k:")) != -1) {
 		switch (c) {
@@ -225,15 +229,52 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (ws_data.cert_path && ws_data.key_path) {
+		use_ssl = MHD_USE_SSL;
+		cert = load_file(ws_data.cert_path);
+		if (!cert) {
+			printf("Failed to load the certificate file.\n");
+			return 1;
+		}
+		// TODO: Wipe the private key from memory
+		// http://crypto.stackexchange.com/questions/9998/should-i-delete-cryptographic-data-from-memory
+		priv_key = load_file(ws_data.key_path);
+		if (!priv_key) {
+			printf("Failed to load the private key file.\n");
+			free(cert);
+			return 1;
+		}
+	} else if (ws_data.cert_path || ws_data.key_path) {
+		printf("The -c and -k options must be used together.\n");
+		return 1;
+	}
+
+	if (use_ssl) {
+		ssl_opts[0].option = MHD_OPTION_HTTPS_MEM_KEY;
+		ssl_opts[0].ptr_value = priv_key;
+		ssl_opts[0].value = 0;
+		ssl_opts[1].option = MHD_OPTION_HTTPS_MEM_CERT;
+		ssl_opts[1].ptr_value = cert;
+		ssl_opts[1].value = 0;
+		ssl_opts[2].option = MHD_OPTION_END;
+		ssl_opts[2].ptr_value = 0;
+		ssl_opts[2].value = 0;
+	} else {
+		ssl_opts[0].option = MHD_OPTION_END;
+		ssl_opts[0].ptr_value = 0;
+		ssl_opts[0].value = 0;
+	}
+
 	if (pthread_create(&ws_thread, nullptr, &ws_loop, &ws_data)) {
 		fprintf(stderr, "Failed to create Websocket thread\n");
 		return 1;
 	}
 	daemon = MHD_start_daemon(MHD_USE_DEBUG | MHD_USE_POLL_INTERNALLY
-			| MHD_USE_THREAD_PER_CONNECTION,
+			| MHD_USE_THREAD_PER_CONNECTION | use_ssl,
 			PORT, nullptr, nullptr, &answer, nullptr,
 			MHD_OPTION_NOTIFY_COMPLETED, &request_completed, nullptr,
 			MHD_OPTION_NOTIFY_CONNECTION, &connection_cb, nullptr,
+			MHD_OPTION_ARRAY, ssl_opts,
 			MHD_OPTION_END);
 	if (daemon == nullptr) {
 		fprintf(stderr, "Failed to create MHD daemon.\n");
@@ -256,6 +297,8 @@ int main(int argc, char **argv)
 	topbl->wait();
 
 	MHD_stop_daemon(daemon);
+	free(priv_key);
+	free(cert);
 
 	return 0;
 }
