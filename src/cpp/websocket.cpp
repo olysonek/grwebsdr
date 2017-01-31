@@ -24,7 +24,6 @@ struct user_data {
 static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 		void *user, void *in, size_t len);
 
-atomic_int ws_id(0);
 struct json_tokener *tok;
 
 static const struct lws_protocols protocols[] = {
@@ -35,6 +34,7 @@ struct lws_context *context;
 
 string new_stream_name()
 {
+	static atomic_int ws_id(0);
 	int id = ws_id.fetch_add(1);
 	stringstream s;
 	s << setbase(36) << setfill('0') << setw(4) << id;
