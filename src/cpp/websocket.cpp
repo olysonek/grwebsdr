@@ -33,6 +33,14 @@ static const struct lws_protocols protocols[] = {
 };
 struct lws_context *context;
 
+string new_stream_name()
+{
+	int id = ws_id.fetch_add(1);
+	stringstream s;
+	s << setbase(36) << setfill('0') << setw(4) << id;
+	return s.str();
+}
+
 void set_privileged(string stream, bool val)
 {
 	topbl_mutex.lock();
@@ -246,10 +254,7 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 		break;
 	}
 	case LWS_CALLBACK_ESTABLISHED: {
-		int id = ws_id.fetch_add(1);
-		stringstream s;
-		s << setbase(36) << setfill('0') << setw(4) << id;
-		data->stream_name = s.str() + string(".ogg");
+		data->stream_name = new_stream_name() + string(".ogg");
 		data->initialized = false;
 		lws_callback_on_writable(wsi);
 		break;
