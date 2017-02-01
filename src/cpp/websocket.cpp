@@ -1,8 +1,8 @@
+#include "websocket.h"
 #include "stuff.h"
 #include "utils.h"
 #include "receiver.h"
 #include <atomic>
-#include <libwebsockets.h>
 #include <string.h>
 #include <string>
 #include <sstream>
@@ -10,27 +10,9 @@
 #include <json-c/json_tokener.h>
 #include <cstdio>
 
-#define MAX_PAYLOAD 4096
-
 using namespace std;
 
-struct user_data {
-	string stream_name;
-	bool initialized;
-	bool privileged_changed;
-	char buf[LWS_PRE + MAX_PAYLOAD];
-};
-
-static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
-		void *user, void *in, size_t len);
-
 struct json_tokener *tok;
-
-static const struct lws_protocols protocols[] = {
-	{ "", &ws_callback, sizeof(struct user_data), MAX_PAYLOAD, 0, nullptr},
-	{ nullptr, nullptr, 0, 0, 0, nullptr}
-};
-struct lws_context *context;
 
 string new_stream_name()
 {
@@ -52,7 +34,7 @@ void set_privileged(string stream, bool val)
 	topbl_mutex.unlock();
 }
 
-void process_authentication(struct user_data *data, struct json_object *obj)
+void process_authentication(struct websocket_user_data *data, struct json_object *obj)
 {
 	struct json_object *tmp, *tmp2;
 	string user, pass;
@@ -78,7 +60,7 @@ void process_authentication(struct user_data *data, struct json_object *obj)
 	}
 }
 
-void change_freq_offset(struct user_data *data, struct json_object *obj)
+void change_freq_offset(struct websocket_user_data *data, struct json_object *obj)
 {
 	int offset;
 	struct json_object *offset_obj;
@@ -96,7 +78,7 @@ void change_freq_offset(struct user_data *data, struct json_object *obj)
 	topbl_mutex.unlock();
 }
 
-void change_hw_freq(struct user_data *data, struct json_object *obj)
+void change_hw_freq(struct websocket_user_data *data, struct json_object *obj)
 {
 	bool priv;
 	struct json_object *freq_obj;
@@ -117,10 +99,10 @@ void change_hw_freq(struct user_data *data, struct json_object *obj)
 	if (!priv)
 		return;
 	osmosdr_src->set_center_freq(freq);
-	lws_callback_on_writable_all_protocol(context, protocols);
+	lws_callback_on_writable_all_protocol(ws_context, protocols);
 }
 
-void change_demod(struct user_data *data, struct json_object *obj)
+void change_demod(struct websocket_user_data *data, struct json_object *obj)
 {
 	struct json_object *demod_obj;
 	const char *demod;
@@ -156,7 +138,7 @@ void change_demod(struct user_data *data, struct json_object *obj)
 	topbl_mutex.unlock();
 }
 
-void init_ws_con(struct lws *wsi, struct user_data *data)
+void init_ws_con(struct lws *wsi, struct websocket_user_data *data)
 {
 	struct json_object *obj;
 	struct json_object *tmp;
@@ -180,7 +162,7 @@ void init_ws_con(struct lws *wsi, struct user_data *data)
 	lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
 }
 
-void send_privileged(struct lws *wsi, struct user_data *data)
+void send_privileged(struct lws *wsi, struct websocket_user_data *data)
 {
 	bool val;
 	char *buf = data->buf + LWS_PRE;
@@ -203,7 +185,7 @@ void send_privileged(struct lws *wsi, struct user_data *data)
 	lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
 }
 
-void send_hw_freq(struct lws *wsi, struct user_data *data)
+void send_hw_freq(struct lws *wsi, struct websocket_user_data *data)
 {
 	struct json_object *obj, *val_obj;
 	char *buf = data->buf + LWS_PRE;
@@ -217,10 +199,10 @@ void send_hw_freq(struct lws *wsi, struct user_data *data)
 	lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
 }
 
-static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
+int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 		void *user, void *in, size_t len)
 {
-	struct user_data *data = (struct user_data *) user;
+	struct websocket_user_data *data = (struct websocket_user_data *) user;
 	(void) wsi;
 
 	switch (reason) {
@@ -265,37 +247,12 @@ static int ws_callback(struct lws *wsi, enum lws_callback_reasons reason,
 	return 0;
 }
 
-void *ws_loop(void *arg)
+int init_websocket()
 {
-	struct lws_context_creation_info info;
-	websocket_data *data = (websocket_data *) arg;
-
 	tok = json_tokener_new();
 	if (!tok) {
 		fprintf(stderr, "json_tokener_new failed\n");
-		return nullptr;
+		return -1;
 	}
-
-	memset(&info, 0, sizeof(info));
-	info.port = 8081;
-	info.iface = nullptr;
-	info.protocols = protocols;
-	info.gid = -1;
-	info.uid = -1;
-	info.ssl_cert_filepath = data->cert_path;
-	info.ssl_private_key_filepath = data->key_path;
-	info.options |= LWS_SERVER_OPTION_REDIRECT_HTTP_TO_HTTPS;
-
-	context = lws_create_context(&info);
-	if (!context) {
-		fprintf(stderr, "Failed to create Websocket context.\n");
-		return nullptr;
-	}
-
-	while (1) {
-		lws_service(context, 100);
-	}
-
-	lws_context_destroy(context);
-	return nullptr;
+	return 0;
 }

@@ -5,6 +5,7 @@
 #include <mutex>
 #include <unordered_map>
 #include <string>
+#include <libwebsockets.h>
 
 #define STREAM_NAME_LEN 8
 
@@ -19,6 +20,8 @@ extern osmosdr::source::sptr osmosdr_src;
 extern gr::top_block_sptr topbl;
 extern std::string username;
 extern std::string password;
+extern struct lws_context *ws_context;
+extern const struct lws_protocols protocols[];
 
 void *ws_loop(void *);
 
