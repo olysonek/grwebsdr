@@ -139,7 +139,7 @@ int send_audio(struct lws *wsi, struct http_user_data *data)
 	unsigned char *buffer = (unsigned char *) data->buf;
 
 	res = read(data->fd, data->buf + LWS_PRE, max);
-	if (res < 0) {
+	if (res <= 0) {
 		if (errno == EAGAIN) {
 			goto call_again;
 		} else {
@@ -152,6 +152,7 @@ int send_audio(struct lws *wsi, struct http_user_data *data)
 		puts("lws_write failed");
 		return -1;
 	}
+	lws_set_timeout(wsi, PENDING_TIMEOUT_HTTP_CONTENT, 5);
 
 call_again:
 	lws_callback_on_writable(wsi);
