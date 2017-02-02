@@ -199,6 +199,16 @@ void send_hw_freq(struct lws *wsi, struct websocket_user_data *data)
 	lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
 }
 
+int init_websocket()
+{
+	tok = json_tokener_new();
+	if (!tok) {
+		fprintf(stderr, "json_tokener_new failed\n");
+		return -1;
+	}
+	return 0;
+}
+
 int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 		void *user, void *in, size_t len)
 {
@@ -206,6 +216,11 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 	(void) wsi;
 
 	switch (reason) {
+	case LWS_CALLBACK_PROTOCOL_INIT:
+		if (init_websocket())
+			return -1;
+		break;
+
 	case LWS_CALLBACK_SERVER_WRITEABLE: {
 		if (!data->initialized) {
 			init_ws_con(wsi, data);
@@ -243,16 +258,6 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 	}
 	default:
 		break;
-	}
-	return 0;
-}
-
-int init_websocket()
-{
-	tok = json_tokener_new();
-	if (!tok) {
-		fprintf(stderr, "json_tokener_new failed\n");
-		return -1;
 	}
 	return 0;
 }

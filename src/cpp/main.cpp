@@ -76,9 +76,6 @@ int run(const char *key_path, const char *cert_path)
 {
 	struct lws_context_creation_info info;
 
-	if (init_websocket())
-		return -1;
-
 	memset(&info, 0, sizeof(info));
 	info.port = PORT;
 	info.iface = nullptr;
