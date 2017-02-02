@@ -2,6 +2,7 @@
 #include "stuff.h"
 #include "utils.h"
 #include "websocket.h"
+#include "http.h"
 #include <iostream>
 #include <cmath>
 #include <cstdio>
@@ -62,7 +63,9 @@ string get_password()
 }
 
 const struct lws_protocols protocols[] = {
-	{ "", &websocket_cb, sizeof(struct websocket_user_data),
+	{ "http-only", &http_cb, sizeof(struct http_user_data),
+		HTTP_MAX_PAYLOAD, 0, nullptr},
+	{ "websocket", &websocket_cb, sizeof(struct websocket_user_data),
 		WEBSOCKET_MAX_PAYLOAD, 0, nullptr},
 	{ nullptr, nullptr, 0, 0, 0, nullptr}
 };

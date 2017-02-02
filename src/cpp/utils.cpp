@@ -98,3 +98,19 @@ bool authenticate(string user, string pass)
 {
 	return user == username && pass == password;
 }
+
+int set_nonblock(int fd)
+{
+	int flags;
+
+	flags = fcntl(fd, F_GETFL, 0);
+	if (flags < 0) {
+		perror("fcntl");
+		return -1;
+	}
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK)) {
+		perror("fcntl");
+		return -1;
+	}
+	return 0;
+}

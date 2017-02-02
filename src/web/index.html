@@ -7,13 +7,13 @@
 	var freq_change_requested = true;
 	var bandwidth = null;
 
-	var ws_url = window.location.hostname + ':8081'
+	var ws_url = window.location.host;
 	var ws_protocol = 'wss';
 	var ws = null;
 	setup_websocket();
 
 	function setup_websocket() {
-		ws = new WebSocket(ws_protocol + '://' + ws_url);
+		ws = new WebSocket(ws_protocol + '://' + ws_url, 'websocket');
 		ws.onopen = function (event) {
 			send_freq_offset('0');
 		};
