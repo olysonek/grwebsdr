@@ -189,7 +189,7 @@ int send_audio(struct lws *wsi, struct http_user_data *data)
 	res = read(data->fd, data->buf + LWS_PRE, max);
 	if (res <= 0) {
 		if (errno == EAGAIN) {
-			goto call_again;
+			return 0;
 		} else {
 			perror("read");
 			return -1;
@@ -201,8 +201,6 @@ int send_audio(struct lws *wsi, struct http_user_data *data)
 		return -1;
 	}
 	lws_set_timeout(wsi, PENDING_TIMEOUT_HTTP_CONTENT, 5);
-
-call_again:
 	return 0;
 }
 
