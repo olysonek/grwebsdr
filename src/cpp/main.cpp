@@ -76,6 +76,7 @@ int run(const char *key_path, const char *cert_path)
 {
 	struct lws_context_creation_info info;
 	int n;
+	bool quitting = false;
 
 	max_fds = getdtablesize();
 	pollfds = (struct lws_pollfd *) malloc(sizeof(*pollfds) * max_fds);
@@ -85,6 +86,7 @@ int run(const char *key_path, const char *cert_path)
 		puts("malloc failed");
 		return -1;
 	}
+	add_pollfd(STDIN_FILENO, POLLIN);
 
 	memset(&info, 0, sizeof(info));
 	info.port = PORT;
@@ -101,15 +103,20 @@ int run(const char *key_path, const char *cert_path)
 		fprintf(stderr, "Failed to create Websocket context.\n");
 		return -1;
 	}
+	puts("Starting the server. Press enter to quit.");
 
-	while (1) {
+	while (!quitting) {
 		n = poll(pollfds, count_pollfds, 50);
 		if (n <= 0)
 			continue;
 		for (n = 0; n < count_pollfds; ++n) {
-			if (pollfds[n].revents) {
-				lws_service_fd(ws_context, &pollfds[n]);
+			if (!pollfds[n].revents)
+				continue;
+			if (pollfds[n].fd == STDIN_FILENO) {
+				quitting = true;
+				break;
 			}
+			lws_service_fd(ws_context, &pollfds[n]);
 			// If lws didn't service the fd, it might be
 			// a receiver fd
 			if (pollfds[n].revents && fd2wsi[pollfds[n].fd]) {
@@ -118,6 +125,7 @@ int run(const char *key_path, const char *cert_path)
 		}
 	}
 
+	puts("Stopping the server.");
 	lws_context_destroy(ws_context);
 	return 0;
 }

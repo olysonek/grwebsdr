@@ -14,5 +14,6 @@ struct http_user_data {
 
 int http_cb(struct lws *wsi, enum lws_callback_reasons reason,
 		void *user, void *in, size_t len);
+int add_pollfd(int fd, short events);
 
 #endif
