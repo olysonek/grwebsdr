@@ -36,11 +36,11 @@ int add_pollfd(int fd, short events)
 	return 0;
 }
 
-void delete_pollfd(struct lws_pollargs *pollargs)
+void delete_pollfd(int fd)
 {
 	if (--count_pollfds) {
-		pollfds[fd_lookup[pollargs->fd]] = pollfds[count_pollfds];
-		fd_lookup[pollfds[count_pollfds].fd] = fd_lookup[pollargs->fd];
+		pollfds[fd_lookup[fd]] = pollfds[count_pollfds];
+		fd_lookup[pollfds[count_pollfds].fd] = fd_lookup[fd];
 	}
 }
 
@@ -155,6 +155,31 @@ int init_http_session(struct lws *wsi, void *user, void *in, size_t len)
 	}
 }
 
+void end_http_session(struct http_user_data *data)
+{
+	const char *stream;
+
+	if (!data)
+		return;
+	stream = stream_name(data->url.c_str());
+	if (!stream)
+		return;
+	printf("Closing stream %s\n", stream);
+	topbl_mutex.lock();
+	if (receiver_map.size() == 1
+			&& receiver_map.find(stream) != receiver_map.end()) {
+		topbl->stop();
+		topbl->wait();
+	}
+	topbl->lock();
+	topbl->disconnect(osmosdr_src, 0, receiver_map[stream], 0);
+	receiver_map.erase(stream);
+	topbl->unlock();
+	topbl_mutex.unlock();
+	delete_pollfd(data->fd);
+	fd2wsi[data->fd] = nullptr;
+}
+
 int send_audio(struct lws *wsi, struct http_user_data *data)
 {
 	size_t max = sizeof(data->buf) - LWS_PRE;
@@ -190,6 +215,9 @@ int http_cb(struct lws *wsi, enum lws_callback_reasons reason,
 	switch (reason) {
 	case LWS_CALLBACK_HTTP:
 		return init_http_session(wsi, user, in, len);
+	case LWS_CALLBACK_CLOSED_HTTP:
+		end_http_session(data);
+		break;
 	case LWS_CALLBACK_HTTP_FILE_COMPLETION:
 		goto try_to_reuse;
 	case LWS_CALLBACK_HTTP_WRITEABLE:
@@ -199,7 +227,7 @@ int http_cb(struct lws *wsi, enum lws_callback_reasons reason,
 	case LWS_CALLBACK_ADD_POLL_FD:
 		return add_pollfd(pollargs->fd, pollargs->events);
 	case LWS_CALLBACK_DEL_POLL_FD:
-		delete_pollfd(pollargs);
+		delete_pollfd(pollargs->fd);
 		break;
 	case LWS_CALLBACK_CHANGE_MODE_POLL_FD:
 		pollfds[fd_lookup[pollargs->fd]].events = pollargs->events;
