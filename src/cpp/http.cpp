@@ -22,6 +22,28 @@ const char *stream_name(const char *url)
 		return nullptr;
 }
 
+int add_pollfd(int fd, short events)
+{
+	if (count_pollfds >= max_fds) {
+		puts("Too many fds.");
+		return 1;
+	}
+	fd_lookup[fd] = count_pollfds;
+	pollfds[count_pollfds].fd = fd;
+	pollfds[count_pollfds].events = events;
+	pollfds[count_pollfds].revents = 0;
+	++count_pollfds;
+	return 0;
+}
+
+void delete_pollfd(struct lws_pollargs *pollargs)
+{
+	if (--count_pollfds) {
+		pollfds[fd_lookup[pollargs->fd]] = pollfds[count_pollfds];
+		fd_lookup[pollfds[count_pollfds].fd] = fd_lookup[pollargs->fd];
+	}
+}
+
 int handle_new_stream(struct lws *wsi, const char *stream,
 		struct http_user_data *data)
 {
@@ -49,6 +71,8 @@ int handle_new_stream(struct lws *wsi, const char *stream,
 		return -1;
 	}
 	data->fd = pipe_fds[0];
+	add_pollfd(pipe_fds[0], POLLIN);
+	fd2wsi[pipe_fds[0]] = wsi;
 	rec = receiver::make(osmosdr_src, topbl, pipe_fds);
 	receiver_map.emplace(stream, rec);
 	topbl->lock();
@@ -99,7 +123,6 @@ int handle_new_stream(struct lws *wsi, const char *stream,
 		return -1;
 	}
 
-	lws_callback_on_writable(wsi);
 	return 0;
 }
 
@@ -155,7 +178,6 @@ int send_audio(struct lws *wsi, struct http_user_data *data)
 	lws_set_timeout(wsi, PENDING_TIMEOUT_HTTP_CONTENT, 5);
 
 call_again:
-	lws_callback_on_writable(wsi);
 	return 0;
 }
 
@@ -163,6 +185,7 @@ int http_cb(struct lws *wsi, enum lws_callback_reasons reason,
 		void *user, void *in, size_t len)
 {
 	struct http_user_data *data = (struct http_user_data *) user;
+	struct lws_pollargs *pollargs = (struct lws_pollargs *) in;
 
 	switch (reason) {
 	case LWS_CALLBACK_HTTP:
@@ -173,6 +196,14 @@ int http_cb(struct lws *wsi, enum lws_callback_reasons reason,
 		if (data->fd < 0)
 			goto try_to_reuse;
 		return send_audio(wsi, data);
+	case LWS_CALLBACK_ADD_POLL_FD:
+		return add_pollfd(pollargs->fd, pollargs->events);
+	case LWS_CALLBACK_DEL_POLL_FD:
+		delete_pollfd(pollargs);
+		break;
+	case LWS_CALLBACK_CHANGE_MODE_POLL_FD:
+		pollfds[fd_lookup[pollargs->fd]].events = pollargs->events;
+		break;
 	default:
 		break;
 	}
