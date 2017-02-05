@@ -55,19 +55,15 @@ int handle_new_stream(struct lws *wsi, const char *stream,
 	int n;
 	receiver::sptr rec;
 
-	topbl_mutex.lock();
 	if (receiver_map.find(stream) != receiver_map.end()) {
-		topbl_mutex.unlock();
 		//XXX
 		return 0;
 	}
 	if (pipe(pipe_fds)) {
 		perror("pipe");
-		topbl_mutex.unlock();
 		return -1;
 	}
 	if (set_nonblock(pipe_fds[0])) {
-		topbl_mutex.unlock();
 		return -1;
 	}
 	data->fd = pipe_fds[0];
@@ -80,7 +76,6 @@ int handle_new_stream(struct lws *wsi, const char *stream,
 	topbl->unlock();
 	if (receiver_map.size() == 1)
 		topbl->start();
-	topbl_mutex.unlock();
 	if (lws_add_http_header_status(wsi, 200, &buf_pos, buf_end))
 		return 1;
 	header = "audio/ogg";
@@ -165,7 +160,6 @@ void end_http_session(struct http_user_data *data)
 	if (!stream)
 		return;
 	printf("Closing stream %s\n", stream);
-	topbl_mutex.lock();
 	if (receiver_map.size() == 1
 			&& receiver_map.find(stream) != receiver_map.end()) {
 		topbl->stop();
@@ -175,7 +169,6 @@ void end_http_session(struct http_user_data *data)
 	topbl->disconnect(osmosdr_src, 0, receiver_map[stream], 0);
 	receiver_map.erase(stream);
 	topbl->unlock();
-	topbl_mutex.unlock();
 	delete_pollfd(data->fd);
 	fd2wsi[data->fd] = nullptr;
 }

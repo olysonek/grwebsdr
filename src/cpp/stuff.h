@@ -14,7 +14,6 @@ typedef struct {
 	const char *cert_path;
 } websocket_data;
 
-extern std::mutex topbl_mutex;
 extern std::unordered_map<std::string, receiver::sptr> receiver_map;
 extern osmosdr::source::sptr osmosdr_src;
 extern gr::top_block_sptr topbl;

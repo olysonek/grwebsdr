@@ -10,7 +10,7 @@ all: main.cpp receiver.cpp receiver.h ogg_sink.h ogg_sink.cpp stuff.h \
 		-lgnuradio-osmosdr -lboost_system  -lgnuradio-pmt \
 		-lgnuradio-filter -lgnuradio-audio -lgnuradio-analog \
 		-lgnuradio-runtime -lgnuradio-blocks \
-		-lvorbisenc -lvorbis -logg -pthread -lwebsockets \
+		-lvorbisenc -lvorbis -logg -lwebsockets \
 		-ljson-c
 
 clean:

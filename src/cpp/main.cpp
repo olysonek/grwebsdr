@@ -15,7 +15,6 @@
 #include <mutex>
 #include <cstring>
 #include <unordered_map>
-#include <pthread.h>
 #include <cstdlib>
 
 #define PORT 8080
@@ -24,7 +23,6 @@ using namespace gr;
 using namespace std;
 
 atomic_int con_num;
-mutex topbl_mutex;
 
 osmosdr::source::sptr osmosdr_src;
 unordered_map<string, receiver::sptr> receiver_map;

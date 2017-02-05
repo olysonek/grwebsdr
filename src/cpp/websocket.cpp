@@ -25,13 +25,10 @@ string new_stream_name()
 
 void set_privileged(string stream, bool val)
 {
-	topbl_mutex.lock();
 	if (receiver_map.find(stream) == receiver_map.end()) {
-		topbl_mutex.unlock();
 		return;
 	}
 	receiver_map[stream]->set_privileged(val);
-	topbl_mutex.unlock();
 }
 
 void process_authentication(struct websocket_user_data *data, struct json_object *obj)
@@ -69,13 +66,10 @@ void change_freq_offset(struct websocket_user_data *data, struct json_object *ob
 			|| json_object_get_type(offset_obj) != json_type_int)
 		return;
 	offset = json_object_get_int(offset_obj);
-	topbl_mutex.lock();
 	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		topbl_mutex.unlock();
 		return;
 	}
 	receiver_map[data->stream_name]->set_center_freq(offset);
-	topbl_mutex.unlock();
 }
 
 void change_hw_freq(struct websocket_user_data *data, struct json_object *obj)
@@ -89,13 +83,10 @@ void change_hw_freq(struct websocket_user_data *data, struct json_object *obj)
 		return;
 	freq = json_object_get_int(freq_obj);
 
-	topbl_mutex.lock();
 	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		topbl_mutex.unlock();
 		return;
 	}
 	priv = receiver_map[data->stream_name]->get_privileged();
-	topbl_mutex.unlock();
 	if (!priv)
 		return;
 	osmosdr_src->set_center_freq(freq);
@@ -127,15 +118,12 @@ void change_demod(struct websocket_user_data *data, struct json_object *obj)
 	else
 		return;
 
-	topbl_mutex.lock();
 	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		topbl_mutex.unlock();
 		return;
 	}
 	topbl->lock();
 	receiver_map[data->stream_name]->change_demod(d);
 	topbl->unlock();
-	topbl_mutex.unlock();
 }
 
 void init_ws_con(struct lws *wsi, struct websocket_user_data *data)
@@ -168,13 +156,10 @@ void send_privileged(struct lws *wsi, struct websocket_user_data *data)
 	char *buf = data->buf + LWS_PRE;
 	struct json_object *obj, *val_obj;
 
-	topbl_mutex.lock();
 	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		topbl_mutex.unlock();
 		return;
 	}
 	val = receiver_map[data->stream_name]->get_privileged();
-	topbl_mutex.unlock();
 
 	obj = json_object_new_object();
 	val_obj = json_object_new_boolean(val);
