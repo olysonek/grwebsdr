@@ -11,7 +11,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <microhttpd.h>
-#include <atomic>
 #include <mutex>
 #include <cstring>
 #include <unordered_map>
@@ -21,8 +20,6 @@
 
 using namespace gr;
 using namespace std;
-
-atomic_int con_num;
 
 osmosdr::source::sptr osmosdr_src;
 unordered_map<string, receiver::sptr> receiver_map;
