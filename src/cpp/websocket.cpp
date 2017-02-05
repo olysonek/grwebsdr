@@ -90,7 +90,7 @@ void change_hw_freq(struct websocket_user_data *data, struct json_object *obj)
 	if (!priv)
 		return;
 	osmosdr_src->set_center_freq(freq);
-	lws_callback_on_writable_all_protocol(ws_context, protocols);
+	lws_callback_on_writable_all_protocol(ws_context, &protocols[1]);
 }
 
 void change_demod(struct websocket_user_data *data, struct json_object *obj)
