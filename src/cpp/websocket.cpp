@@ -126,13 +126,10 @@ void change_demod(struct websocket_user_data *data, struct json_object *obj)
 	topbl->unlock();
 }
 
-void init_ws_con(struct lws *wsi, struct websocket_user_data *data)
+void attach_init_data(struct websocket_user_data *data, struct json_object *obj)
 {
-	struct json_object *obj;
 	struct json_object *tmp;
-	char *buf = data->buf + LWS_PRE;
 
-	obj = json_object_new_object();
 	tmp = json_object_new_string(data->stream_name.c_str());
 	json_object_object_add(obj, "stream_name", tmp);
 
@@ -144,44 +141,30 @@ void init_ws_con(struct lws *wsi, struct websocket_user_data *data)
 
 	tmp = json_object_new_string("WFM");
 	json_object_object_add(obj, "demod", tmp);
-
-	strcpy(buf, json_object_get_string(obj));
-	json_object_put(obj);
-	lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
 }
 
-void send_privileged(struct lws *wsi, struct websocket_user_data *data)
+void attach_privileged(struct websocket_user_data *data, struct json_object *obj)
 {
 	bool val;
-	char *buf = data->buf + LWS_PRE;
-	struct json_object *obj, *val_obj;
+	struct json_object *val_obj;
 
 	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
 		return;
 	}
 	val = receiver_map[data->stream_name]->get_privileged();
 
-	obj = json_object_new_object();
 	val_obj = json_object_new_boolean(val);
 	json_object_object_add(obj, "privileged", val_obj);
 
-	strcpy(buf, json_object_get_string(obj));
-	json_object_put(obj);
-	lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
 }
 
-void send_hw_freq(struct lws *wsi, struct websocket_user_data *data)
+void attach_hw_freq(struct websocket_user_data *data, struct json_object *obj)
 {
-	struct json_object *obj, *val_obj;
-	char *buf = data->buf + LWS_PRE;
+	(void) data;
+	struct json_object *val_obj;
 
-	obj = json_object_new_object();
 	val_obj = json_object_new_int(osmosdr_src->get_center_freq());
 	json_object_object_add(obj, "hw_freq", val_obj);
-
-	strcpy(buf, json_object_get_string(obj));
-	json_object_put(obj);
-	lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
 }
 
 int init_websocket()
@@ -207,15 +190,22 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 		break;
 
 	case LWS_CALLBACK_SERVER_WRITEABLE: {
+		struct json_object *reply;
+		char *buf = data->buf + LWS_PRE;
+
+		reply = json_object_new_object();
 		if (!data->initialized) {
-			init_ws_con(wsi, data);
+			attach_init_data(data, reply);
 			data->initialized = true;
 		}
 		if (data->privileged_changed) {
-			send_privileged(wsi, data);
+			attach_privileged(data, reply);
 			data->privileged_changed = false;
 		}
-		send_hw_freq(wsi, data);
+		attach_hw_freq(data, reply);
+		strcpy(buf, json_object_get_string(reply));
+		json_object_put(reply);
+		lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
 		break;
 	}
 	case LWS_CALLBACK_RECEIVE: {
