@@ -126,6 +126,15 @@ void change_demod(struct websocket_user_data *data, struct json_object *obj)
 	topbl->unlock();
 }
 
+void attach_hw_freq(struct websocket_user_data *data, struct json_object *obj)
+{
+	(void) data;
+	struct json_object *val_obj;
+
+	val_obj = json_object_new_int(osmosdr_src->get_center_freq());
+	json_object_object_add(obj, "hw_freq", val_obj);
+}
+
 void attach_init_data(struct websocket_user_data *data, struct json_object *obj)
 {
 	struct json_object *tmp;
@@ -133,14 +142,13 @@ void attach_init_data(struct websocket_user_data *data, struct json_object *obj)
 	tmp = json_object_new_string(data->stream_name.c_str());
 	json_object_object_add(obj, "stream_name", tmp);
 
-	tmp = json_object_new_int(osmosdr_src->get_center_freq());
-	json_object_object_add(obj, "hw_freq", tmp);
-
 	tmp = json_object_new_int(osmosdr_src->get_sample_rate());
 	json_object_object_add(obj, "bandwidth", tmp);
 
 	tmp = json_object_new_string("WFM");
 	json_object_object_add(obj, "demod", tmp);
+
+	attach_hw_freq(data, obj);
 }
 
 void attach_privileged(struct websocket_user_data *data, struct json_object *obj)
@@ -156,15 +164,6 @@ void attach_privileged(struct websocket_user_data *data, struct json_object *obj
 	val_obj = json_object_new_boolean(val);
 	json_object_object_add(obj, "privileged", val_obj);
 
-}
-
-void attach_hw_freq(struct websocket_user_data *data, struct json_object *obj)
-{
-	(void) data;
-	struct json_object *val_obj;
-
-	val_obj = json_object_new_int(osmosdr_src->get_center_freq());
-	json_object_object_add(obj, "hw_freq", val_obj);
 }
 
 int init_websocket()
