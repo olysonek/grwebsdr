@@ -116,8 +116,9 @@
 	}
 
 	function update_converter_offset(offset) {
+		var formatted = format_freq(offset);
 		var lbl = document.getElementById('converter_offset');
-		lbl.innerHTML = 'Up/down converter offset: ' + offset;
+		lbl.innerHTML = 'Up/down converter offset: ' + formatted;
 		converter_offset = offset;
 		update_center_freq();
 		update_receiver_freq();
