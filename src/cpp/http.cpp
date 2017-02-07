@@ -51,30 +51,26 @@ int handle_new_stream(struct lws *wsi, const char *stream,
 	unsigned char *buf_pos = (unsigned char *) data->buf + LWS_PRE;
 	unsigned char *buf_end = (unsigned char *) data->buf + sizeof(data->buf);
 	const char *header;
-	int pipe_fds[2];
 	int n;
 	receiver::sptr rec;
 
-	if (receiver_map.find(stream) != receiver_map.end()) {
-		//XXX
-		return 0;
-	}
-	if (pipe(pipe_fds)) {
-		perror("pipe");
+	if (receiver_map.find(stream) == receiver_map.end()) {
+		lws_return_http_status(wsi, HTTP_STATUS_NOT_FOUND, nullptr);
 		return -1;
 	}
-	if (set_nonblock(pipe_fds[0])) {
+	rec = receiver_map[stream];
+	if (!rec->is_ready() || rec->is_running()) {
+		lws_return_http_status(wsi, HTTP_STATUS_NOT_FOUND, nullptr);
 		return -1;
 	}
-	data->fd = pipe_fds[0];
-	add_pollfd(pipe_fds[0], POLLIN);
-	fd2wsi[pipe_fds[0]] = wsi;
-	rec = receiver::make(osmosdr_src, topbl, pipe_fds);
-	receiver_map.emplace(stream, rec);
+	data->fd = rec->get_fd()[0];
+	add_pollfd(data->fd, POLLIN);
+	fd2wsi[data->fd] = wsi;
+
 	topbl->lock();
-	topbl->connect(osmosdr_src, 0, rec, 0);
+	rec->start();
 	topbl->unlock();
-	if (receiver_map.size() == 1)
+	if (count_receivers_running() == 1)
 		topbl->start();
 	if (lws_add_http_header_status(wsi, 200, &buf_pos, buf_end))
 		return 1;
@@ -153,6 +149,7 @@ int init_http_session(struct lws *wsi, void *user, void *in, size_t len)
 void end_http_session(struct http_user_data *data)
 {
 	const char *stream;
+	receiver::sptr rec;
 
 	if (!data)
 		return;
@@ -160,14 +157,15 @@ void end_http_session(struct http_user_data *data)
 	if (!stream)
 		return;
 	printf("Closing stream %s\n", stream);
-	if (receiver_map.size() == 1
-			&& receiver_map.find(stream) != receiver_map.end()) {
+	if (receiver_map.find(stream) == receiver_map.end())
+		return;
+	if (count_receivers_running() == 1) {
 		topbl->stop();
 		topbl->wait();
 	}
+	rec = receiver_map[stream];
 	topbl->lock();
-	topbl->disconnect(osmosdr_src, 0, receiver_map[stream], 0);
-	receiver_map.erase(stream);
+	rec->stop();
 	topbl->unlock();
 	delete_pollfd(data->fd);
 	fd2wsi[data->fd] = nullptr;

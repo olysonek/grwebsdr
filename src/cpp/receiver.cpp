@@ -12,17 +12,17 @@ using namespace gr;
 using namespace gr::analog;
 using namespace gr::filter;
 
-receiver::sptr receiver::make(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
+receiver::sptr receiver::make(double src_rate, gr::top_block_sptr top_bl,
 			int fds[2])
 {
-	return boost::shared_ptr<receiver>(new receiver(src, top_bl, fds));
+	return boost::shared_ptr<receiver>(new receiver(src_rate, top_bl, fds));
 }
 
-receiver::receiver(osmosdr::source::sptr src, gr::top_block_sptr top_bl,
-		int fds[2])
+receiver::receiver(double src_rate, gr::top_block_sptr top_bl, int fds[2])
 	: hier_block2("receiver", io_signature::make(1, 1, sizeof (gr_complex)),
-			io_signature::make(0, 0, 0))
-	, src(src), top_bl(top_bl), privileged(false), audio_rate(24000),
+			io_signature::make(0, 0, 0)),
+	src_rate(src_rate), top_bl(top_bl), privileged(false),
+	audio_rate(24000), running(false),
 	demod_type(NO_DEMOD)
 {
 	this->fds[0] = fds[0];
@@ -48,7 +48,6 @@ void receiver::connect_blocks()
 
 void receiver::change_demod(receiver::demod_t d)
 {
-	double src_rate = src->get_sample_rate();
 	int dec1 = 8; // Pre-demodulation decimation
 	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
 	int offset = xlate == nullptr ? 0 : xlate->center_freq();
@@ -112,4 +111,54 @@ bool receiver::get_privileged()
 void receiver::set_privileged(bool val)
 {
 	privileged = val;
+}
+
+string receiver::get_source_name()
+{
+	return source_name;
+}
+
+osmosdr::source::sptr receiver::get_source()
+{
+	return source;
+}
+
+void receiver::set_source(string source_name)
+{
+	osmosdr::source::sptr tmp;
+
+	tmp = osmosdr_sources.at(source_name);
+	if (running) {
+		top_bl->disconnect(source, 0, self(), 0);
+		top_bl->connect(tmp, 0, self(), 0);
+	}
+	source = tmp;
+	this->source_name = source_name;
+}
+
+bool receiver::start()
+{
+	if (!is_ready() || is_running())
+		return false;
+	top_bl->connect(source, 0, self(), 0);
+	running = true;
+	return true;
+}
+
+bool receiver::is_ready()
+{
+	return source != nullptr;
+}
+
+bool receiver::is_running()
+{
+	return running;
+}
+
+void receiver::stop()
+{
+	if (is_running()) {
+		top_bl->disconnect(source, 0, self(), 0);
+		running = false;
+	}
 }

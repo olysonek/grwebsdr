@@ -114,3 +114,14 @@ int set_nonblock(int fd)
 	}
 	return 0;
 }
+
+int count_receivers_running()
+{
+	int ret = 0;
+
+	for (auto pair : receiver_map) {
+		if (pair.second->is_running())
+			++ret;
+	}
+	return ret;
+}

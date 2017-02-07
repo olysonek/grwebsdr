@@ -10,6 +10,7 @@ struct websocket_user_data {
 	std::string stream_name;
 	bool initialized;
 	bool privileged_changed;
+	bool source_changed;
 	char buf[LWS_PRE + WEBSOCKET_MAX_PAYLOAD];
 };
 

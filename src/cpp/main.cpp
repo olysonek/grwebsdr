@@ -15,13 +15,16 @@
 #include <cstring>
 #include <unordered_map>
 #include <cstdlib>
+#include <osmosdr/device.h>
+#include <map>
 
 #define PORT 8080
 
 using namespace gr;
 using namespace std;
 
-osmosdr::source::sptr osmosdr_src;
+map<string, osmosdr::source::sptr> osmosdr_sources;
+string default_source_name;
 unordered_map<string, receiver::sptr> receiver_map;
 string username;
 string password;
@@ -55,6 +58,19 @@ string get_password()
 	getline(cin, ret);
 	system("/usr/bin/stty echo");
 	return ret;
+}
+
+bool should_use_source(string name)
+{
+	string answer;
+
+	cout << "Use the following source? " << name << endl;
+	while (answer != "y" && answer != "n") {
+		cout << "[y/n] ";
+		cout.flush();
+		getline(cin, answer);
+	}
+	return answer == "y";
 }
 
 const struct lws_protocols protocols[] = {
@@ -135,6 +151,7 @@ int main(int argc, char **argv)
 	double src_rate = 2400000.0;
 	const char *cert_path = nullptr, *key_path = nullptr;
 	int c;
+	osmosdr::devices_t devices;
 
 	while ((c = getopt(argc, argv, "hc:k:")) != -1) {
 		switch (c) {
@@ -156,16 +173,31 @@ int main(int argc, char **argv)
 	username = get_username();
 	password = get_password();
 
-	topbl = make_top_block("top_block");
-	osmosdr_src = osmosdr::source::make();
+	cout << endl << "Looking for tuners..." << endl;
+	devices = osmosdr::device::find(osmosdr::device_t("nofake"));
+	for (osmosdr::device_t device : devices) {
+		string str = device.to_string();
+		if (should_use_source(str))
+			osmosdr_sources.emplace(str, osmosdr::source::make(str));
+	}
+	if (osmosdr_sources.size() == 0) {
+		cout << "No tuner selected. Quitting." << endl;
+		return 0;
+	}
+	default_source_name = osmosdr_sources.cbegin()->first;
 
-	osmosdr_src->set_sample_rate(src_rate);
-	osmosdr_src->set_center_freq(102300000.0);
-	osmosdr_src->set_freq_corr(0.0);
-	osmosdr_src->set_dc_offset_mode(0);
-	osmosdr_src->set_iq_balance_mode(0);
-	osmosdr_src->set_gain_mode(true);
-	osmosdr_src->set_bandwidth(0.0);
+	topbl = make_top_block("top_block");
+
+	for (auto pair : osmosdr_sources) {
+		osmosdr::source::sptr src = pair.second;
+		src->set_sample_rate(src_rate);
+		src->set_center_freq(102300000.0);
+		src->set_freq_corr(0.0);
+		src->set_dc_offset_mode(0);
+		src->set_iq_balance_mode(0);
+		src->set_gain_mode(true);
+		src->set_bandwidth(0.0);
+	}
 
 	run(key_path, cert_path);
 

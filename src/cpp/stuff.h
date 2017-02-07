@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <string>
 #include <libwebsockets.h>
+#include <map>
 
 #define STREAM_NAME_LEN 8
 
@@ -15,7 +16,8 @@ typedef struct {
 } websocket_data;
 
 extern std::unordered_map<std::string, receiver::sptr> receiver_map;
-extern osmosdr::source::sptr osmosdr_src;
+extern std::map<std::string, osmosdr::source::sptr> osmosdr_sources;
+extern std::string default_source_name;
 extern gr::top_block_sptr topbl;
 extern std::string username;
 extern std::string password;

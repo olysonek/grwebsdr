@@ -12,5 +12,6 @@ std::vector<gr_complex> taps_f2c(std::vector<float> vec);
 char *load_file(const char *path);
 bool authenticate(std::string user, std::string pass);
 int set_nonblock(int fd);
+int count_receivers_running();
 
 #endif
