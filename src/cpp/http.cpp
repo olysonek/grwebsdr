@@ -110,7 +110,6 @@ int handle_new_stream(struct lws *wsi, const char *stream,
 			buf_pos - (buffer + LWS_PRE),
 			LWS_WRITE_HTTP_HEADERS);
 	if (n < 0) {
-		// TODO receiver cleanup
 		return -1;
 	}
 
