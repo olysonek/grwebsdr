@@ -109,6 +109,7 @@ int run(const char *key_path, const char *cert_path)
 	info.protocols = protocols;
 	info.gid = -1;
 	info.uid = -1;
+	info.max_http_header_pool = 20;
 	info.ssl_cert_filepath = cert_path;
 	info.ssl_private_key_filepath = key_path;
 	info.options |= LWS_SERVER_OPTION_REDIRECT_HTTP_TO_HTTPS;
