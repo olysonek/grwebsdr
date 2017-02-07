@@ -7,6 +7,7 @@
 	var freq_change_requested = true;
 	var bandwidth = null;
 	var stream_name = null;
+	var audio = null;
 
 	var ws_url = window.location.host;
 	var ws_protocol = 'wss';
@@ -30,16 +31,35 @@
 			var msg = JSON.parse(event.data);
 			if (msg.hasOwnProperty('stream_name')) {
 				stream_name = msg.stream_name;
-				change_source(msg.sources[0]);
 				update_freq_offset(0);
 			}
-			if (msg.hasOwnProperty('current_source')) {
+			if (msg.hasOwnProperty('sources')) {
+				update_sources(msg.sources);
+			}
+			if (msg.hasOwnProperty('current_source') && audio == null) {
 				init_audio(stream_name);
 			}
 			update_hw_freq(msg);
 			update_bandwidth(msg);
 			update_privileged(msg);
 		};
+	}
+
+	function update_sources(sources) {
+		var sel = document.getElementById('select_source');
+		sel.innerHTML = '';
+		if (sources.length == 0) {
+			alert('No sources available');
+			return;
+		}
+		for (i = 0; i < sources.length; ++i) {
+			var opt = document.createElement('option');
+			opt.value = sources[i];
+			opt.innerHTML = sources[i];
+			sel.appendChild(opt);
+		}
+		sel.value = sources[0];
+		change_source(sources[0]);
 	}
 
 	function change_source(source_name) {
@@ -186,7 +206,8 @@
 	}
 
 	function init_audio(stream_name) {
-		new Audio(stream_name).play();
+		audio = new Audio(stream_name);
+		audio.play();
 	}
 
 	function toggle_login() {
@@ -235,6 +256,8 @@
 		<option value="USB">USB</option>
 		<option value="LSB">LSB</option>
 		<option value="CW">CW</option>
+	</select>
+	<select onchange="change_source(this.value)" id="select_source">
 	</select>
 </body>
 </html>

@@ -157,12 +157,16 @@ void attach_hw_freq(struct websocket_user_data *data, struct json_object *obj)
 	(void) data;
 	struct json_object *val_obj;
 	receiver::sptr rec;
+	osmosdr::source::sptr src;
 
 	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
 		return;
 	}
 	rec = receiver_map[data->stream_name];
-	val_obj = json_object_new_int(rec->get_source()->get_center_freq());
+	src = rec->get_source();
+	if (src == nullptr)
+		return;
+	val_obj = json_object_new_int(src->get_center_freq());
 	json_object_object_add(obj, "hw_freq", val_obj);
 }
 
@@ -286,11 +290,11 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 			data->privileged_changed = false;
 		}
 		if (data->source_changed) {
-			attach_hw_freq(data, reply);
 			attach_bandwidth(data, reply);
 			attach_source_name(data, reply);
 			data->source_changed = false;
 		}
+		attach_hw_freq(data, reply);
 		strcpy(buf, json_object_get_string(reply));
 		json_object_put(reply);
 		lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
