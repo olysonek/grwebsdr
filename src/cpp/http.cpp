@@ -54,11 +54,12 @@ int handle_new_stream(struct lws *wsi, const char *stream,
 	int n;
 	receiver::sptr rec;
 
-	if (receiver_map.find(stream) == receiver_map.end()) {
+	auto iter = receiver_map.find(stream);
+	if (iter == receiver_map.end()) {
 		lws_return_http_status(wsi, HTTP_STATUS_NOT_FOUND, nullptr);
 		return -1;
 	}
-	rec = receiver_map[stream];
+	rec = iter->second;
 	if (!rec->is_ready() || rec->is_running()) {
 		lws_return_http_status(wsi, HTTP_STATUS_NOT_FOUND, nullptr);
 		return -1;
@@ -156,13 +157,14 @@ void end_http_session(struct http_user_data *data)
 	if (!stream)
 		return;
 	printf("Closing stream %s\n", stream);
-	if (receiver_map.find(stream) == receiver_map.end())
+	auto iter = receiver_map.find(stream);
+	if (iter == receiver_map.end())
 		return;
 	if (count_receivers_running() == 1) {
 		topbl->stop();
 		topbl->wait();
 	}
-	rec = receiver_map[stream];
+	rec = iter->second;
 	topbl->lock();
 	rec->stop();
 	topbl->unlock();

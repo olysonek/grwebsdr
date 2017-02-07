@@ -23,15 +23,8 @@ string new_stream_name()
 	return s.str();
 }
 
-void set_privileged(string stream, bool val)
-{
-	if (receiver_map.find(stream) == receiver_map.end()) {
-		return;
-	}
-	receiver_map[stream]->set_privileged(val);
-}
-
-void process_authentication(struct websocket_user_data *data, struct json_object *obj)
+void process_authentication(struct json_object *obj, receiver::sptr rec,
+		struct websocket_user_data *data)
 {
 	struct json_object *tmp, *tmp2;
 	string user, pass;
@@ -50,14 +43,14 @@ void process_authentication(struct websocket_user_data *data, struct json_object
 			return;
 		pass = json_object_get_string(tmp2);
 		if (authenticate(user, pass))
-			set_privileged(data->stream_name, true);
+			rec->set_privileged(true);
 	} else if (json_object_object_get_ex(obj, "logout", &tmp)) {
-		set_privileged(data->stream_name, false);
 		data->privileged_changed = true;
+		rec->set_privileged(false);
 	}
 }
 
-void change_freq_offset(struct websocket_user_data *data, struct json_object *obj)
+void change_freq_offset(struct json_object *obj, receiver::sptr rec)
 {
 	int offset;
 	struct json_object *offset_obj;
@@ -66,28 +59,20 @@ void change_freq_offset(struct websocket_user_data *data, struct json_object *ob
 			|| json_object_get_type(offset_obj) != json_type_int)
 		return;
 	offset = json_object_get_int(offset_obj);
-	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		return;
-	}
-	receiver_map[data->stream_name]->set_center_freq(offset);
+	rec->set_center_freq(offset);
 }
 
-void change_hw_freq(struct websocket_user_data *data, struct json_object *obj)
+void change_hw_freq(struct json_object *obj, receiver::sptr rec)
 {
 	bool priv;
 	struct json_object *freq_obj;
 	int freq;
-	receiver::sptr rec;
 
 	if (!json_object_object_get_ex(obj, "hw_freq", &freq_obj)
 			|| json_object_get_type(freq_obj) != json_type_int)
 		return;
 	freq = json_object_get_int(freq_obj);
 
-	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		return;
-	}
-	rec = receiver_map[data->stream_name];
 	priv = rec->get_privileged();
 	if (!priv || rec->get_source() == nullptr)
 		return;
@@ -95,7 +80,7 @@ void change_hw_freq(struct websocket_user_data *data, struct json_object *obj)
 	lws_callback_on_writable_all_protocol(ws_context, &protocols[1]);
 }
 
-void change_demod(struct websocket_user_data *data, struct json_object *obj)
+void change_demod(struct json_object *obj, receiver::sptr rec)
 {
 	struct json_object *demod_obj;
 	const char *demod;
@@ -120,19 +105,16 @@ void change_demod(struct websocket_user_data *data, struct json_object *obj)
 	else
 		return;
 
-	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		return;
-	}
 	topbl->lock();
-	receiver_map[data->stream_name]->change_demod(d);
+	rec->change_demod(d);
 	topbl->unlock();
 }
 
-void change_source(struct websocket_user_data *data, struct json_object *obj)
+void change_source(struct json_object *obj, receiver::sptr rec,
+		struct websocket_user_data *data)
 {
 	struct json_object *source_obj;
 	const char *source_name;
-	receiver::sptr rec;
 
 	if (!json_object_object_get_ex(obj, "source", &source_obj)
 			|| json_object_get_type(source_obj) != json_type_string) {
@@ -140,29 +122,20 @@ void change_source(struct websocket_user_data *data, struct json_object *obj)
 	}
 	source_name = json_object_get_string(source_obj);
 
-	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		return;
-	}
 	if (osmosdr_sources.find(source_name) == osmosdr_sources.end()) {
 		return;
 	}
 	topbl->lock();
-	receiver_map[data->stream_name]->set_source(source_name);
+	rec->set_source(source_name);
 	topbl->unlock();
 	data->source_changed = true;
 }
 
-void attach_hw_freq(struct websocket_user_data *data, struct json_object *obj)
+void attach_hw_freq(struct json_object *obj, receiver::sptr rec)
 {
-	(void) data;
 	struct json_object *val_obj;
-	receiver::sptr rec;
 	osmosdr::source::sptr src;
 
-	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		return;
-	}
-	rec = receiver_map[data->stream_name];
 	src = rec->get_source();
 	if (src == nullptr)
 		return;
@@ -170,16 +143,12 @@ void attach_hw_freq(struct websocket_user_data *data, struct json_object *obj)
 	json_object_object_add(obj, "hw_freq", val_obj);
 }
 
-void attach_source_name(struct websocket_user_data *data, struct json_object *obj)
+void attach_source_name(struct json_object *obj, receiver::sptr rec)
 {
 	struct json_object *val_obj;
 	string val;
 
-	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		return;
-	}
-	val = receiver_map[data->stream_name]->get_source_name();
-
+	val = rec->get_source_name();
 	val_obj = json_object_new_string(val.c_str());
 	json_object_object_add(obj, "source_name", val_obj);
 }
@@ -196,39 +165,28 @@ void attach_source_names(struct json_object *obj)
 	json_object_object_add(obj, "sources", sources);
 }
 
-void attach_bandwidth(struct websocket_user_data *data, struct json_object *obj)
+void attach_bandwidth(struct json_object *obj, receiver::sptr rec)
 {
 	struct json_object *tmp;
-	receiver::sptr rec;
-
-	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		return;
-	}
-	rec = receiver_map[data->stream_name];
 
 	tmp = json_object_new_int(rec->get_source()->get_sample_rate());
 	json_object_object_add(obj, "bandwidth", tmp);
 }
 
-void attach_source_info(struct websocket_user_data *data, struct json_object *obj)
+void attach_source_info(struct json_object *obj, receiver::sptr rec)
 {
 	struct json_object *tmp;
-	receiver::sptr rec;
 
-	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		return;
-	}
-	rec = receiver_map[data->stream_name];
 	if (rec->get_source() == nullptr)
 		return;
 	tmp = json_object_new_object();
-	attach_source_name(data, tmp);
-	attach_hw_freq(data, tmp);
-	attach_bandwidth(data, tmp);
+	attach_source_name(tmp, rec);
+	attach_hw_freq(tmp, rec);
+	attach_bandwidth(tmp, rec);
 	json_object_object_add(obj, "current_source", tmp);
 }
 
-void attach_init_data(struct websocket_user_data *data, struct json_object *obj)
+void attach_init_data(struct json_object *obj, struct websocket_user_data *data)
 {
 	struct json_object *tmp;
 
@@ -241,15 +199,12 @@ void attach_init_data(struct websocket_user_data *data, struct json_object *obj)
 	attach_source_names(obj);
 }
 
-void attach_privileged(struct websocket_user_data *data, struct json_object *obj)
+void attach_privileged(struct json_object *obj, receiver::sptr rec)
 {
 	bool val;
 	struct json_object *val_obj;
 
-	if (receiver_map.find(data->stream_name) == receiver_map.end()) {
-		return;
-	}
-	val = receiver_map[data->stream_name]->get_privileged();
+	val = rec->get_privileged();
 
 	val_obj = json_object_new_boolean(val);
 	json_object_object_add(obj, "privileged", val_obj);
@@ -297,21 +252,28 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 	case LWS_CALLBACK_SERVER_WRITEABLE: {
 		struct json_object *reply;
 		char *buf = data->buf + LWS_PRE;
+		receiver::sptr rec;
+
+		auto iter = receiver_map.find(data->stream_name);
+		if (iter == receiver_map.end()) {
+			return -1;
+		}
+		rec = iter->second;
 
 		reply = json_object_new_object();
 		if (!data->initialized) {
-			attach_init_data(data, reply);
+			attach_init_data(reply, data);
 			data->initialized = true;
 		}
 		if (data->privileged_changed) {
-			attach_privileged(data, reply);
+			attach_privileged(reply, rec);
 			data->privileged_changed = false;
 		}
 		if (data->source_changed) {
-			attach_source_info(data, reply);
+			attach_source_info(reply, rec);
 			data->source_changed = false;
 		} else {
-			attach_hw_freq(data, reply);
+			attach_hw_freq(reply, rec);
 		}
 		strcpy(buf, json_object_get_string(reply));
 		json_object_put(reply);
@@ -320,6 +282,13 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 	}
 	case LWS_CALLBACK_RECEIVE: {
 		struct json_object *obj;
+		receiver::sptr rec;
+
+		auto iter = receiver_map.find(data->stream_name);
+		if (iter == receiver_map.end()) {
+			return -1;
+		}
+		rec = iter->second;
 
 		obj = json_tokener_parse_ex(tok, (char *) in, len);
 		if (!obj) {
@@ -327,11 +296,12 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 			break;
 		}
 		json_tokener_reset(tok);
-		change_freq_offset(data, obj);
-		change_hw_freq(data, obj);
-		change_demod(data, obj);
-		change_source(data, obj);
-		process_authentication(data, obj);
+
+		change_freq_offset(obj, rec);
+		change_hw_freq(obj, rec);
+		change_demod(obj, rec);
+		change_source(obj, rec, data);
+		process_authentication(obj, rec, data);
 		json_object_put(obj);
 		lws_callback_on_writable(wsi);
 		break;
