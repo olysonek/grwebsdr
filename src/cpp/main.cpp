@@ -24,6 +24,7 @@ using namespace gr;
 using namespace std;
 
 map<string, osmosdr::source::sptr> osmosdr_sources;
+map<string, source_info_t> sources_info;
 unordered_map<string, receiver::sptr> receiver_map;
 string username;
 string password;
@@ -70,6 +71,18 @@ bool should_use_source(string name)
 		getline(cin, answer);
 	}
 	return answer == "y";
+}
+
+int ask_freq_converter_offset()
+{
+	int ret;
+	string line;
+
+	cout << "Enter up/down converter offset for the device: ";
+	cout.flush();
+	getline(cin, line);
+	ret = stoi(line);
+	return ret;
 }
 
 const struct lws_protocols protocols[] = {
@@ -177,8 +190,14 @@ int main(int argc, char **argv)
 	devices = osmosdr::device::find(osmosdr::device_t("nofake"));
 	for (osmosdr::device_t device : devices) {
 		string str = device.to_string();
-		if (should_use_source(str))
+		if (should_use_source(str)) {
+			int offset;
+			source_info_t i;
 			osmosdr_sources.emplace(str, osmosdr::source::make(str));
+			offset = ask_freq_converter_offset();
+			i.freq_converter_offset = offset;
+			sources_info.emplace(str, i);
+		}
 	}
 	if (osmosdr_sources.size() == 0) {
 		cout << "No tuner selected. Quitting." << endl;

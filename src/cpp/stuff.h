@@ -15,8 +15,13 @@ typedef struct {
 	const char *cert_path;
 } websocket_data;
 
+typedef struct {
+	int freq_converter_offset;
+} source_info_t;
+
 extern std::unordered_map<std::string, receiver::sptr> receiver_map;
 extern std::map<std::string, osmosdr::source::sptr> osmosdr_sources;
+extern std::map<std::string, source_info_t> sources_info;
 extern gr::top_block_sptr topbl;
 extern std::string username;
 extern std::string password;

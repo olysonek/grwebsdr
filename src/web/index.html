@@ -8,6 +8,8 @@
 	var bandwidth = null;
 	var stream_name = null;
 	var audio = null;
+	var converter_offset = 0;
+	var freq_offset = 0;
 
 	var ws_url = window.location.host;
 	var ws_protocol = 'wss';
@@ -76,7 +78,7 @@
 			sel.appendChild(opt);
 		}
 		update_source_name(sources[0]);
-		change_source(sources[0]);
+		send_source(sources[0]);
 	}
 
 	function update_source_name(name) {
@@ -84,19 +86,58 @@
 		sel.value = name;
 	}
 
+	function get_center_freq() {
+		return hw_freq + converter_offset;
+	}
+
+	function get_receiver_freq() {
+		return get_center_freq() + freq_offset;
+	}
+
+	function update_center_freq() {
+		var freq = get_center_freq();
+		var elem = document.getElementById('lbl_center_freq');
+		var formatted = format_freq(freq);
+		elem.innerHTML = 'Center frequency: ' + formatted;
+
+		elem = document.getElementById('txt_center_freq');
+		if (elem != null)
+			elem.value = freq;
+	}
+
+	function update_receiver_freq() {
+		var freq = get_receiver_freq();
+		var elem = document.getElementById('lbl_receiver_freq');
+		var formatted = format_freq(freq);
+		elem.innerHTML = 'Receiver frequency: ' + formatted;
+
+		elem = document.getElementById('txt_receiver_freq');
+		elem.value = freq;
+	}
+
+	function update_converter_offset(offset) {
+		var lbl = document.getElementById('converter_offset');
+		lbl.innerHTML = 'Up/down converter offset: ' + offset;
+		converter_offset = offset;
+		update_center_freq();
+		update_receiver_freq();
+	}
+
 	function source_changed(source) {
 		if (!source.hasOwnProperty('source_name')
 				|| !source.hasOwnProperty('bandwidth')
-				|| !source.hasOwnProperty('hw_freq')) {
+				|| !source.hasOwnProperty('hw_freq')
+				|| !source.hasOwnProperty('converter_offset')) {
 			alert('Error: incomplete source info sent.');
 			return;
 		}
+		update_converter_offset(source.converter_offset);
 		update_source_name(source.source_name);
 		update_hw_freq(source.hw_freq);
 		update_bandwidth(source.bandwidth);
 	}
 
-	function change_source(source_name) {
+	function send_source(source_name) {
 		ws.send('{"source": \"' + source_name + '\"}');
 	}
 
@@ -133,31 +174,31 @@
 
 	function addPrivilegedUI() {
 		var form = document.createElement("form");
-		form.id = "form_hw_freq";
+		form.id = "form_center_freq";
 		form.action = "#";
 		form.onsubmit = function() {
-			var freq = parseInt(document.getElementById('hw_freq').value);
+			var freq = parseInt(document.getElementById('center_freq').value);
+			freq -= converter_offset;
 			freq_change_requested = true;
 			ws.send('{"hw_freq":' + freq + '}');
 		};
 
 		var e = document.createElement("input");
 		e.type = "text";
-		e.id = "hw_freq";
-		if (hw_freq != null)
-			e.value = hw_freq;
+		e.id = "center_freq";
+		e.value = get_center_freq();
 		form.appendChild(e);
 
 		e = document.createElement("input");
 		e.type = "submit";
-		e.value = "Change HW freq";
+		e.value = "Change center frequency";
 		form.appendChild(e);
 
 		document.body.appendChild(form);
 	}
 
 	function removePrivilegedUI() {
-		var e = document.getElementById("form_hw_freq");
+		var e = document.getElementById("form_center_freq");
 		e.outerHTML = "";
 		delete e;
 	}
@@ -174,14 +215,8 @@
 
 	function update_hw_freq(value) {
 		hw_freq = value;
-		var elem = document.getElementById('lbl_hw_freq');
-		var freq = format_freq(value);
-		elem.innerHTML = 'HW frequency: ' + freq;
-
-		elem = document.getElementById('hw_freq');
-		if (elem != null)
-			elem.value = value;
-		update_freq_offset(get_freq_offset());
+		update_center_freq();
+		update_receiver_freq();
 	}
 
 	function send_freq_offset(offset) {
@@ -199,10 +234,8 @@
 	}
 
 	function change_freq_offset_txt() {
-		if (hw_freq == null)
-			return;
-		var center_freq = document.getElementById("txt_center_freq").value;
-		var offset = center_freq - hw_freq;
+		var receiver_freq = document.getElementById("txt_receiver_freq").value;
+		var offset = receiver_freq - get_center_freq();
 		if (!check_freq_offset(offset))
 			return;
 		update_freq_offset(offset);
@@ -219,19 +252,10 @@
 		return true;
 	}
 
-	function get_freq_offset() {
-		return parseInt(document.getElementById("freq_offset").value);
-	}
-
 	function update_freq_offset(offset) {
+		freq_offset = offset;
 		document.getElementById("freq_offset").value = offset;
-		if (hw_freq == null)
-			return;
-		var center_freq = offset + hw_freq;
-		document.getElementById("txt_center_freq").value = center_freq;
-		var freq = format_freq(center_freq);
-		var elem = document.getElementById("lbl_center_freq");
-		elem.innerHTML = "Center frequency: " + freq;
+		update_receiver_freq();
 	}
 
 	function init_audio(stream_name) {
@@ -264,8 +288,9 @@
 	</form>
 	<br>
 
-	<label id="lbl_hw_freq"></label><br>
-	<label id="lbl_center_freq" for="freq_offset">Center frequency: 0</label><br>
+	<label id="converter_offset"></label><br>
+	<label id="lbl_center_freq"></label><br>
+	<label id="lbl_receiver_freq"></label><br>
 
 	<input type="range" id="freq_offset" min="-1000000" max="1000000" value="0"
 		step="1" style="border: 1px; width: 90%"
@@ -273,8 +298,8 @@
 		oninput="change_freq_offset_range()"><br>
 
 	<form action="#" onsubmit="change_freq_offset_txt()">
-		<input type="text" id="txt_center_freq">
-		<input type="submit" value="Change center frequency">
+		<input type="text" id="txt_receiver_freq">
+		<input type="submit" value="Change receiver frequency">
 	</form><br>
 
 	<label for="select_demod">Demodulation: </label>
@@ -288,7 +313,7 @@
 	</select><br>
 
 	<label for="select_source">Tuner: </label>
-	<select onchange="change_source(this.value)" id="select_source">
+	<select onchange="send_source(this.value)" id="select_source">
 	</select><br>
 	<label id="num_clients"></label>
 </body>
