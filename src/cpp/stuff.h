@@ -11,11 +11,6 @@
 #define STREAM_NAME_LEN 8
 
 typedef struct {
-	const char *key_path;
-	const char *cert_path;
-} websocket_data;
-
-typedef struct {
 	int freq_converter_offset;
 } source_info_t;
 
