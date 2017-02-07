@@ -51,7 +51,15 @@
 				}
 			}
 			update_privileged(msg);
+			update_num_clients(msg);
 		};
+	}
+
+	function update_num_clients(msg) {
+		if (msg.hasOwnProperty('num_clients')) {
+			var elem = document.getElementById('num_clients');
+			elem.innerHTML = 'Number of clients: ' + msg.num_clients;
+		}
 	}
 
 	function update_sources(sources) {
@@ -281,6 +289,7 @@
 
 	<label for="select_source">Tuner: </label>
 	<select onchange="change_source(this.value)" id="select_source">
-	</select>
+	</select><br>
+	<label id="num_clients"></label>
 </body>
 </html>

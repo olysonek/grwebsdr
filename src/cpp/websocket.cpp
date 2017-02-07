@@ -210,6 +210,14 @@ void attach_privileged(struct json_object *obj, receiver::sptr rec)
 	json_object_object_add(obj, "privileged", val_obj);
 }
 
+void attach_num_clients(struct json_object *obj)
+{
+	struct json_object *tmp;
+
+	tmp = json_object_new_int(receiver_map.size());
+	json_object_object_add(obj, "num_clients", tmp);
+}
+
 int init_websocket()
 {
 	tok = json_tokener_new();
@@ -234,6 +242,8 @@ int create_stream(struct websocket_user_data *data)
 	data->stream_name = new_stream_name() + string(".ogg");
 	receiver_map[data->stream_name] = receiver::make(2400000, topbl,
 			pipe_fds);
+	// Update number of clients
+	lws_callback_on_writable_all_protocol(ws_context, &protocols[1]);
 	return 0;
 }
 
@@ -275,6 +285,7 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 		} else {
 			attach_hw_freq(reply, rec);
 		}
+		attach_num_clients(reply);
 		strcpy(buf, json_object_get_string(reply));
 		json_object_put(reply);
 		lws_write(wsi, (unsigned char *) buf, strlen(buf), LWS_WRITE_TEXT);
@@ -328,6 +339,8 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 			topbl->unlock();
 		}
 		receiver_map.erase(data->stream_name);
+		// Update number of clients
+		lws_callback_on_writable_all_protocol(ws_context, &protocols[1]);
 		break;
 	}
 	default:
