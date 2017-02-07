@@ -24,7 +24,6 @@ using namespace gr;
 using namespace std;
 
 map<string, osmosdr::source::sptr> osmosdr_sources;
-string default_source_name;
 unordered_map<string, receiver::sptr> receiver_map;
 string username;
 string password;
@@ -184,7 +183,6 @@ int main(int argc, char **argv)
 		cout << "No tuner selected. Quitting." << endl;
 		return 0;
 	}
-	default_source_name = osmosdr_sources.cbegin()->first;
 
 	topbl = make_top_block("top_block");
 

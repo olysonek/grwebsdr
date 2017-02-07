@@ -17,7 +17,6 @@ typedef struct {
 
 extern std::unordered_map<std::string, receiver::sptr> receiver_map;
 extern std::map<std::string, osmosdr::source::sptr> osmosdr_sources;
-extern std::string default_source_name;
 extern gr::top_block_sptr topbl;
 extern std::string username;
 extern std::string password;
