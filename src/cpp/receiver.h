@@ -51,6 +51,7 @@ private:
 	std::string cur_demod;
 
 	void connect_blocks();
+	int trim_freq_offset(int offset, int src_rate);
 };
 
 #endif

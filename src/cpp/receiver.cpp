@@ -47,12 +47,22 @@ void receiver::connect_blocks()
 	connect(demod, 0, sink, 0);
 }
 
+int receiver::trim_freq_offset(int offset, int src_rate)
+{
+	if (offset > src_rate / 2)
+		return src_rate / 2;
+	else if (offset < -src_rate / 2)
+		return -src_rate / 2;
+	else
+		return offset;
+}
+
 bool receiver::change_demod(string d)
 {
 	double src_rate;
 	int dec1 = 8; // Pre-demodulation decimation
 	double dec1_rate;
-	int offset = xlate == nullptr ? 0 : xlate->center_freq();
+	int offset;
 	vector<gr_complex> taps;
 
 	if (source == nullptr)
@@ -61,7 +71,10 @@ bool receiver::change_demod(string d)
 			== supported_demods.end()) {
 		return false;
 	}
+
 	src_rate = source->get_sample_rate();
+	offset = xlate == nullptr ? 0
+			: trim_freq_offset(xlate->center_freq(), src_rate);
 	dec1_rate = src_rate / dec1; // Sample rate after first decimation;
 	disconnect_all();
 	if (d == "WFM") {
@@ -99,6 +112,7 @@ bool receiver::set_freq_offset(int offset)
 {
 	if (xlate == nullptr)
 		return false;
+	offset = trim_freq_offset(offset, source->get_sample_rate());
 	xlate->set_center_freq(offset);
 	return true;
 }
