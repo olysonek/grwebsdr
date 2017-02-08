@@ -100,6 +100,18 @@ int ask_hw_freq()
 	return ret;
 }
 
+int ask_sample_rate()
+{
+	int ret;
+	string line;
+
+	cout << "Enter sample rate: ";
+	cout.flush();
+	getline(cin, line);
+	ret = stoi(line);
+	return ret;
+}
+
 const struct lws_protocols protocols[] = {
 	{ "http-only", &http_cb, sizeof(struct http_user_data),
 		HTTP_MAX_PAYLOAD, 0, nullptr},
@@ -194,13 +206,15 @@ void add_sources_interactive()
 	for (osmosdr::device_t device : devices) {
 		string str = device.to_string();
 		if (should_use_source(str)) {
-			int offset, freq;
+			int offset, freq, sample_rate;
 			osmosdr::source::sptr source;
 			source_info_t i;
 
 			offset = ask_freq_converter_offset();
 			freq = ask_hw_freq();
+			sample_rate = ask_sample_rate();
 			source = osmosdr::source::make(str);
+			source->set_sample_rate(sample_rate);
 			source->set_center_freq(freq);
 			osmosdr_sources.emplace(str, source);
 			i.freq_converter_offset = offset;
@@ -211,7 +225,6 @@ void add_sources_interactive()
 
 int main(int argc, char **argv)
 {
-	double src_rate = 2400000.0;
 	const char *cert_path = nullptr, *key_path = nullptr;
 	const char *config_path = nullptr;
 	int c;
@@ -258,7 +271,6 @@ int main(int argc, char **argv)
 
 	for (auto pair : osmosdr_sources) {
 		osmosdr::source::sptr src = pair.second;
-		src->set_sample_rate(src_rate);
 		src->set_freq_corr(0.0);
 		src->set_dc_offset_mode(0);
 		src->set_iq_balance_mode(0);

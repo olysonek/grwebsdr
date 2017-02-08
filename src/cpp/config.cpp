@@ -14,6 +14,7 @@ bool add_source(struct json_object *obj)
 	string name{""};
 	int freq_converter_offset = 0;
 	int initial_hw_freq = 103000000;
+	int sample_rate = 2400000;
 	osmosdr::source::sptr source;
 	source_info_t info;
 
@@ -30,6 +31,10 @@ bool add_source(struct json_object *obj)
 			if (json_object_get_type(tmp) != json_type_int)
 				goto bad_format;
 			initial_hw_freq = json_object_get_int(tmp);
+		} else if (!strcmp(key, "sample_rate")) {
+			if (json_object_get_type(tmp) != json_type_int)
+				goto bad_format;
+			sample_rate = json_object_get_int(tmp);
 		} else {
 			printf("Unknown source parameter in config file: %s\n",
 					key);
@@ -37,6 +42,7 @@ bool add_source(struct json_object *obj)
 		}
 	}
 	source = osmosdr::source::make(name);
+	source->set_sample_rate(sample_rate);
 	source->set_center_freq(initial_hw_freq);
 	osmosdr_sources.emplace(name, source);
 	info.freq_converter_offset = freq_converter_offset;
