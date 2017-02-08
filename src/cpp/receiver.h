@@ -20,12 +20,13 @@ public:
 
 	static sptr make(double src_rate, gr::top_block_sptr top_bl,
 			int fds[2]);
-	void set_center_freq(double freq);
+	bool set_freq_offset(double offset);
 	int *get_fd();
 	~receiver();
 	bool get_privileged();
 	void set_privileged(bool val);
 	bool change_demod(std::string d);
+	std::string get_current_demod();
 	std::string get_source_name();
 	osmosdr::source::sptr get_source();
 	void set_source(std::string source_name);

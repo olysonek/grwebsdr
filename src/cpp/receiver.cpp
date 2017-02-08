@@ -31,7 +31,6 @@ receiver::receiver(double src_rate, gr::top_block_sptr top_bl, int fds[2])
 	this->fds[1] = fds[1];
 
 	sink = ogg_sink::make(fds[1], 1, audio_rate);
-	change_demod("WFM");
 }
 
 receiver::~receiver()
@@ -86,9 +85,17 @@ bool receiver::change_demod(string d)
 	return true;
 }
 
-void receiver::set_center_freq(double freq)
+string receiver::get_current_demod()
 {
-	xlate->set_center_freq(freq);
+	return cur_demod;
+}
+
+bool receiver::set_freq_offset(double offset)
+{
+	if (xlate == nullptr)
+		return false;
+	xlate->set_center_freq(offset);
+	return true;
 }
 
 int *receiver::get_fd()
@@ -140,7 +147,7 @@ bool receiver::start()
 
 bool receiver::is_ready()
 {
-	return source != nullptr;
+	return source != nullptr && cur_demod != "";
 }
 
 bool receiver::is_running()

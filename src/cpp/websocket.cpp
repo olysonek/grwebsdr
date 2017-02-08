@@ -59,7 +59,7 @@ void change_freq_offset(struct json_object *obj, receiver::sptr rec)
 			|| json_object_get_type(offset_obj) != json_type_int)
 		return;
 	offset = json_object_get_int(offset_obj);
-	rec->set_center_freq(offset);
+	rec->set_freq_offset(offset);
 }
 
 void change_hw_freq(struct json_object *obj, receiver::sptr rec)
@@ -80,7 +80,8 @@ void change_hw_freq(struct json_object *obj, receiver::sptr rec)
 	lws_callback_on_writable_all_protocol(ws_context, &protocols[1]);
 }
 
-void change_demod(struct json_object *obj, receiver::sptr rec)
+void change_demod(struct json_object *obj, receiver::sptr rec,
+		struct websocket_user_data *data)
 {
 	struct json_object *demod_obj;
 	const char *demod;
@@ -93,6 +94,7 @@ void change_demod(struct json_object *obj, receiver::sptr rec)
 	topbl->lock();
 	rec->change_demod(demod);
 	topbl->unlock();
+	data->demod_changed = true;
 }
 
 void change_source(struct json_object *obj, receiver::sptr rec,
@@ -114,6 +116,14 @@ void change_source(struct json_object *obj, receiver::sptr rec,
 	rec->set_source(source_name);
 	topbl->unlock();
 	data->source_changed = true;
+}
+
+void attach_current_demod(struct json_object *obj, receiver::sptr rec)
+{
+	struct json_object *tmp;
+
+	tmp = json_object_new_string(rec->get_current_demod().c_str());
+	json_object_object_add(obj, "demod", tmp);
 }
 
 void attach_hw_freq(struct json_object *obj, receiver::sptr rec)
@@ -201,9 +211,6 @@ void attach_init_data(struct json_object *obj, struct websocket_user_data *data)
 	tmp = json_object_new_string(data->stream_name.c_str());
 	json_object_object_add(obj, "stream_name", tmp);
 
-	tmp = json_object_new_string("WFM");
-	json_object_object_add(obj, "demod", tmp);
-
 	attach_source_names(obj);
 	attach_supported_demods(obj);
 }
@@ -288,6 +295,10 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 			attach_privileged(reply, rec);
 			data->privileged_changed = false;
 		}
+		if (data->demod_changed) {
+			attach_current_demod(reply, rec);
+			data->demod_changed = false;
+		}
 		if (data->source_changed) {
 			attach_source_info(reply, rec);
 			data->source_changed = false;
@@ -319,7 +330,7 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 
 		change_freq_offset(obj, rec);
 		change_hw_freq(obj, rec);
-		change_demod(obj, rec);
+		change_demod(obj, rec, data);
 		change_source(obj, rec, data);
 		process_authentication(obj, rec, data);
 		json_object_put(obj);

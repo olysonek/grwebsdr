@@ -53,6 +53,9 @@
 					freq_change_requested = false;
 				}
 			}
+			if (msg.hasOwnProperty('demod')) {
+				update_demod_name(msg.demod);
+			}
 			update_privileged(msg);
 			update_num_clients(msg);
 		};
@@ -96,6 +99,7 @@
 			sel.appendChild(opt);
 		}
 		update_demod_name(demods[0]);
+		send_demod(demods[0]);
 	}
 
 	function update_source_name(name) {
@@ -299,7 +303,7 @@
 		}
 	}
 
-	function change_demod(val) {
+	function send_demod(val) {
 		ws.send('{"demod":"' + val + '"}');
 	}
 
@@ -326,7 +330,7 @@
 	</form><br>
 
 	<label for="select_demod">Demodulation: </label>
-	<select onchange="change_demod(this.value)" id="select_demod">
+	<select onchange="send_demod(this.value)" id="select_demod">
 	</select><br>
 
 	<label for="select_source">Tuner: </label>
