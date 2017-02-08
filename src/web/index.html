@@ -53,6 +53,9 @@
 			if (msg.hasOwnProperty('demod')) {
 				update_demod_name(msg.demod);
 			}
+			if (msg.hasOwnProperty('freq_offset')) {
+				update_freq_offset(msg.freq_offset);
+			}
 			update_privileged(msg);
 			update_num_clients(msg);
 		};

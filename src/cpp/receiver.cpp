@@ -95,12 +95,19 @@ string receiver::get_current_demod()
 	return cur_demod;
 }
 
-bool receiver::set_freq_offset(double offset)
+bool receiver::set_freq_offset(int offset)
 {
 	if (xlate == nullptr)
 		return false;
 	xlate->set_center_freq(offset);
 	return true;
+}
+
+int receiver::get_freq_offset()
+{
+	if (xlate == nullptr)
+		return 0;
+	return xlate->center_freq();
 }
 
 int *receiver::get_fd()

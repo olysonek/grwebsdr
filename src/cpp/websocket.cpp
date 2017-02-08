@@ -50,7 +50,8 @@ void process_authentication(struct json_object *obj, receiver::sptr rec,
 	}
 }
 
-void change_freq_offset(struct json_object *obj, receiver::sptr rec)
+void change_freq_offset(struct json_object *obj, receiver::sptr rec,
+		struct websocket_user_data *data)
 {
 	int offset;
 	struct json_object *offset_obj;
@@ -60,6 +61,7 @@ void change_freq_offset(struct json_object *obj, receiver::sptr rec)
 		return;
 	offset = json_object_get_int(offset_obj);
 	rec->set_freq_offset(offset);
+	data->offset_changed = true;
 }
 
 void change_hw_freq(struct json_object *obj, receiver::sptr rec)
@@ -136,6 +138,14 @@ void attach_hw_freq(struct json_object *obj, receiver::sptr rec)
 		return;
 	val_obj = json_object_new_int(src->get_center_freq());
 	json_object_object_add(obj, "hw_freq", val_obj);
+}
+
+void attach_freq_offset(struct json_object *obj, receiver::sptr rec)
+{
+	struct json_object *val_obj;
+
+	val_obj = json_object_new_int(rec->get_freq_offset());
+	json_object_object_add(obj, "freq_offset", val_obj);
 }
 
 void attach_source_name(struct json_object *obj, receiver::sptr rec)
@@ -298,6 +308,10 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 			attach_current_demod(reply, rec);
 			data->demod_changed = false;
 		}
+		if (data->offset_changed) {
+			attach_freq_offset(reply, rec);
+			data->offset_changed = false;
+		}
 		if (data->source_changed) {
 			attach_source_info(reply, rec);
 			data->source_changed = false;
@@ -327,7 +341,7 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 		}
 		json_tokener_reset(tok);
 
-		change_freq_offset(obj, rec);
+		change_freq_offset(obj, rec, data);
 		change_hw_freq(obj, rec);
 		change_demod(obj, rec, data);
 		change_source(obj, rec, data);

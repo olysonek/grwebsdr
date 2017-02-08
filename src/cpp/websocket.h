@@ -12,6 +12,7 @@ struct websocket_user_data {
 	bool privileged_changed;
 	bool source_changed;
 	bool demod_changed;
+	bool offset_changed;
 	char buf[LWS_PRE + WEBSOCKET_MAX_PAYLOAD];
 };
 

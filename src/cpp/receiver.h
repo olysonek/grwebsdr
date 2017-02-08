@@ -20,7 +20,8 @@ public:
 
 	static sptr make(gr::top_block_sptr top_bl,
 			int fds[2]);
-	bool set_freq_offset(double offset);
+	bool set_freq_offset(int offset);
+	int get_freq_offset();
 	int *get_fd();
 	~receiver();
 	bool get_privileged();
