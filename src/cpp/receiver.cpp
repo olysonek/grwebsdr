@@ -130,18 +130,18 @@ osmosdr::source::sptr receiver::get_source()
 
 void receiver::set_source(string source_name)
 {
-	osmosdr::source::sptr tmp;
+	osmosdr::source::sptr old_source = source;
 
-	tmp = osmosdr_sources.at(source_name);
+	source = osmosdr_sources.at(source_name);
 	if (running)
-		top_bl->disconnect(source, 0, self(), 0);
-	if (source != nullptr && cur_demod != ""
-			&& source->get_sample_rate() != tmp->get_sample_rate()) {
+		top_bl->disconnect(old_source, 0, self(), 0);
+	if (old_source != nullptr && cur_demod != ""
+			&& source->get_sample_rate()
+			!= old_source->get_sample_rate()) {
 		change_demod(cur_demod);
 	}
 	if (running)
-		top_bl->connect(tmp, 0, self(), 0);
-	source = tmp;
+		top_bl->connect(source, 0, self(), 0);
 	this->source_name = source_name;
 }
 
