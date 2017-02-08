@@ -182,6 +182,18 @@ void attach_source_info(struct json_object *obj, receiver::sptr rec)
 	json_object_object_add(obj, "current_source", tmp);
 }
 
+void attach_supported_demods(struct json_object *obj)
+{
+	struct json_object *demods, *tmp;
+
+	demods = json_object_new_array();
+	for (string d : receiver::supported_demods) {
+		tmp = json_object_new_string(d.c_str());
+		json_object_array_add(demods, tmp);
+	}
+	json_object_object_add(obj, "supported_demods", demods);
+}
+
 void attach_init_data(struct json_object *obj, struct websocket_user_data *data)
 {
 	struct json_object *tmp;
@@ -193,6 +205,7 @@ void attach_init_data(struct json_object *obj, struct websocket_user_data *data)
 	json_object_object_add(obj, "demod", tmp);
 
 	attach_source_names(obj);
+	attach_supported_demods(obj);
 }
 
 void attach_privileged(struct json_object *obj, receiver::sptr rec)

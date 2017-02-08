@@ -36,6 +36,9 @@
 			if (msg.hasOwnProperty('sources')) {
 				update_sources(msg.sources);
 			}
+			if (msg.hasOwnProperty('supported_demods')) {
+				update_demods(msg.supported_demods);
+			}
 			if (msg.hasOwnProperty('current_source')) {
 				if (audio == null)
 					init_audio(stream_name);
@@ -79,9 +82,30 @@
 		send_source(sources[0]);
 	}
 
+	function update_demods(demods) {
+		var sel = document.getElementById('select_demod');
+		sel.innerHTML = '';
+		if (demods.length == 0) {
+			alert('No supported demodulations.');
+			return;
+		}
+		for (i = 0; i < demods.length; ++i) {
+			var opt = document.createElement('option');
+			opt.value = demods[i];
+			opt.innerHTML = demods[i];
+			sel.appendChild(opt);
+		}
+		update_demod_name(demods[0]);
+	}
+
 	function update_source_name(name) {
 		var sel = document.getElementById('select_source');
 		sel.value = name;
+	}
+
+	function update_demod_name(demod) {
+		var sel = document.getElementById('select_demod');
+		sel.value = demod;
 	}
 
 	function get_center_freq() {
@@ -303,12 +327,6 @@
 
 	<label for="select_demod">Demodulation: </label>
 	<select onchange="change_demod(this.value)" id="select_demod">
-		<option value="WFM">WFM</option>
-		<option value="FM">FM</option>
-		<option value="AM">AM</option>
-		<option value="USB">USB</option>
-		<option value="LSB">LSB</option>
-		<option value="CW">CW</option>
 	</select><br>
 
 	<label for="select_source">Tuner: </label>
