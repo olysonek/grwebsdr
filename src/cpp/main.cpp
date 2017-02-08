@@ -37,6 +37,7 @@ void usage(const char *progname)
 	printf("Options: -h                     Print help\n");
 	printf("         -c certificate_file\n");
 	printf("         -k private_key_file\n");
+	printf("         -s                     Scan for sources\n");
 }
 
 string get_username()
@@ -159,6 +160,17 @@ int run(const char *key_path, const char *cert_path)
 	return 0;
 }
 
+void scan_sources()
+{
+	osmosdr::devices_t devices;
+
+	cout << "Looking for sources..." << endl;
+	devices = osmosdr::device::find();
+	for (osmosdr::device_t device : devices) {
+		cout << device.to_string() << endl;
+	}
+}
+
 int main(int argc, char **argv)
 {
 	double src_rate = 2400000.0;
@@ -166,7 +178,7 @@ int main(int argc, char **argv)
 	int c;
 	osmosdr::devices_t devices;
 
-	while ((c = getopt(argc, argv, "hc:k:")) != -1) {
+	while ((c = getopt(argc, argv, "hc:k:s")) != -1) {
 		switch (c) {
 		case 'h':
 			usage(argv[0]);
@@ -177,6 +189,9 @@ int main(int argc, char **argv)
 		case 'k':
 			key_path = optarg;
 			break;
+		case 's':
+			scan_sources();
+			return 0;
 		default:
 			usage(argv[0]);
 			return 1;
