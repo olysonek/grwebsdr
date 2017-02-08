@@ -118,6 +118,7 @@ void change_source(struct json_object *obj, receiver::sptr rec,
 	rec->set_source(source_name);
 	topbl->unlock();
 	data->source_changed = true;
+	data->offset_changed = true;
 }
 
 void attach_current_demod(struct json_object *obj, receiver::sptr rec)
