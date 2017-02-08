@@ -256,8 +256,7 @@ int create_stream(struct websocket_user_data *data)
 		return -1;
 	}
 	data->stream_name = new_stream_name() + string(".ogg");
-	receiver_map[data->stream_name] = receiver::make(2400000, topbl,
-			pipe_fds);
+	receiver_map[data->stream_name] = receiver::make(topbl, pipe_fds);
 	// Update number of clients
 	lws_callback_on_writable_all_protocol(ws_context, &protocols[1]);
 	return 0;

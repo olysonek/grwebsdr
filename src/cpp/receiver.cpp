@@ -15,16 +15,16 @@ using namespace gr::filter;
 
 vector<string> receiver::supported_demods = { "WFM", "FM", "AM", "LSB", "USB", "CW" };
 
-receiver::sptr receiver::make(double src_rate, gr::top_block_sptr top_bl,
+receiver::sptr receiver::make(gr::top_block_sptr top_bl,
 			int fds[2])
 {
-	return boost::shared_ptr<receiver>(new receiver(src_rate, top_bl, fds));
+	return boost::shared_ptr<receiver>(new receiver(top_bl, fds));
 }
 
-receiver::receiver(double src_rate, gr::top_block_sptr top_bl, int fds[2])
+receiver::receiver(gr::top_block_sptr top_bl, int fds[2])
 	: hier_block2("receiver", io_signature::make(1, 1, sizeof (gr_complex)),
 			io_signature::make(0, 0, 0)),
-	src_rate(src_rate), top_bl(top_bl), privileged(false),
+	top_bl(top_bl), privileged(false),
 	audio_rate(24000), running(false)
 {
 	this->fds[0] = fds[0];
@@ -49,15 +49,20 @@ void receiver::connect_blocks()
 
 bool receiver::change_demod(string d)
 {
+	double src_rate;
 	int dec1 = 8; // Pre-demodulation decimation
-	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
+	double dec1_rate;
 	int offset = xlate == nullptr ? 0 : xlate->center_freq();
 	vector<gr_complex> taps;
 
+	if (source == nullptr)
+		return false;
 	if (find(supported_demods.begin(), supported_demods.end(), d)
 			== supported_demods.end()) {
 		return false;
 	}
+	src_rate = source->get_sample_rate();
+	dec1_rate = src_rate / dec1; // Sample rate after first decimation;
 	disconnect_all();
 	if (d == "WFM") {
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 75000, 25000));
@@ -128,10 +133,14 @@ void receiver::set_source(string source_name)
 	osmosdr::source::sptr tmp;
 
 	tmp = osmosdr_sources.at(source_name);
-	if (running) {
+	if (running)
 		top_bl->disconnect(source, 0, self(), 0);
-		top_bl->connect(tmp, 0, self(), 0);
+	if (source != nullptr && cur_demod != ""
+			&& source->get_sample_rate() != tmp->get_sample_rate()) {
+		change_demod(cur_demod);
 	}
+	if (running)
+		top_bl->connect(tmp, 0, self(), 0);
 	source = tmp;
 	this->source_name = source_name;
 }

@@ -18,7 +18,7 @@ public:
 	typedef boost::shared_ptr<receiver> sptr;
 	static std::vector<std::string> supported_demods;
 
-	static sptr make(double src_rate, gr::top_block_sptr top_bl,
+	static sptr make(gr::top_block_sptr top_bl,
 			int fds[2]);
 	bool set_freq_offset(double offset);
 	int *get_fd();
@@ -36,10 +36,9 @@ public:
 	void stop();
 
 private:
-	receiver(double src_rate, gr::top_block_sptr top_bl, int fds[2]);
+	receiver(gr::top_block_sptr top_bl, int fds[2]);
 	std::string source_name;
 	osmosdr::source::sptr source;
-	double src_rate;
 	gr::top_block_sptr top_bl;
 	gr::filter::freq_xlating_fir_filter_ccc::sptr xlate;
 	gr::basic_block_sptr demod;
