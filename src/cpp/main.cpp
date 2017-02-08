@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "websocket.h"
 #include "http.h"
+#include "config.h"
 #include <iostream>
 #include <cmath>
 #include <cstdio>
@@ -38,6 +39,7 @@ void usage(const char *progname)
 	printf("         -c certificate_file\n");
 	printf("         -k private_key_file\n");
 	printf("         -s                     Scan for sources\n");
+	printf("         -f config_file\n");
 }
 
 string get_username()
@@ -80,6 +82,18 @@ int ask_freq_converter_offset()
 	string line;
 
 	cout << "Enter up/down converter offset for the device: ";
+	cout.flush();
+	getline(cin, line);
+	ret = stoi(line);
+	return ret;
+}
+
+int ask_hw_freq()
+{
+	int ret;
+	string line;
+
+	cout << "Enter initial HW frequency: ";
 	cout.flush();
 	getline(cin, line);
 	ret = stoi(line);
@@ -171,14 +185,38 @@ void scan_sources()
 	}
 }
 
+void add_sources_interactive()
+{
+	osmosdr::devices_t devices;
+
+	cout << "Looking for tuners..." << endl;
+	devices = osmosdr::device::find(osmosdr::device_t("nofake"));
+	for (osmosdr::device_t device : devices) {
+		string str = device.to_string();
+		if (should_use_source(str)) {
+			int offset, freq;
+			osmosdr::source::sptr source;
+			source_info_t i;
+
+			offset = ask_freq_converter_offset();
+			freq = ask_hw_freq();
+			source = osmosdr::source::make(str);
+			source->set_center_freq(freq);
+			osmosdr_sources.emplace(str, source);
+			i.freq_converter_offset = offset;
+			sources_info.emplace(str, i);
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
 	double src_rate = 2400000.0;
 	const char *cert_path = nullptr, *key_path = nullptr;
+	const char *config_path = nullptr;
 	int c;
-	osmosdr::devices_t devices;
 
-	while ((c = getopt(argc, argv, "hc:k:s")) != -1) {
+	while ((c = getopt(argc, argv, "hc:k:sf:")) != -1) {
 		switch (c) {
 		case 'h':
 			usage(argv[0]);
@@ -192,39 +230,35 @@ int main(int argc, char **argv)
 		case 's':
 			scan_sources();
 			return 0;
+		case 'f':
+			config_path = optarg;
+			break;
 		default:
 			usage(argv[0]);
 			return 1;
 		}
 	}
 
-	username = get_username();
-	password = get_password();
-
-	cout << endl << "Looking for tuners..." << endl;
-	devices = osmosdr::device::find(osmosdr::device_t("nofake"));
-	for (osmosdr::device_t device : devices) {
-		string str = device.to_string();
-		if (should_use_source(str)) {
-			int offset;
-			source_info_t i;
-			osmosdr_sources.emplace(str, osmosdr::source::make(str));
-			offset = ask_freq_converter_offset();
-			i.freq_converter_offset = offset;
-			sources_info.emplace(str, i);
-		}
+	if (config_path == nullptr) {
+		add_sources_interactive();
+	} else {
+		if (!process_config(config_path))
+			return 1;
 	}
+
 	if (osmosdr_sources.size() == 0) {
 		cout << "No tuner selected. Quitting." << endl;
 		return 0;
 	}
+
+	username = get_username();
+	password = get_password();
 
 	topbl = make_top_block("top_block");
 
 	for (auto pair : osmosdr_sources) {
 		osmosdr::source::sptr src = pair.second;
 		src->set_sample_rate(src_rate);
-		src->set_center_freq(102300000.0);
 		src->set_freq_corr(0.0);
 		src->set_dc_offset_mode(0);
 		src->set_iq_balance_mode(0);
