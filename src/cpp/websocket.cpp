@@ -160,12 +160,12 @@ void attach_source_names(struct json_object *obj)
 	json_object_object_add(obj, "sources", sources);
 }
 
-void attach_bandwidth(struct json_object *obj, receiver::sptr rec)
+void attach_sample_rate(struct json_object *obj, receiver::sptr rec)
 {
 	struct json_object *tmp;
 
 	tmp = json_object_new_int(rec->get_source()->get_sample_rate());
-	json_object_object_add(obj, "bandwidth", tmp);
+	json_object_object_add(obj, "sample_rate", tmp);
 }
 
 void attach_converter_offset(struct json_object *obj, receiver::sptr rec)
@@ -187,7 +187,7 @@ void attach_source_info(struct json_object *obj, receiver::sptr rec)
 	tmp = json_object_new_object();
 	attach_source_name(tmp, rec);
 	attach_hw_freq(tmp, rec);
-	attach_bandwidth(tmp, rec);
+	attach_sample_rate(tmp, rec);
 	attach_converter_offset(tmp, rec);
 	json_object_object_add(obj, "current_source", tmp);
 }

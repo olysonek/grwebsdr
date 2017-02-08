@@ -5,7 +5,7 @@
 	var hw_freq = null;
 	var privileged = false;
 	var freq_change_requested = false;
-	var bandwidth = null;
+	var sample_rate = null;
 	var stream_name = null;
 	var audio = null;
 	var converter_offset = 0;
@@ -149,7 +149,7 @@
 
 	function source_changed(source) {
 		if (!source.hasOwnProperty('source_name')
-				|| !source.hasOwnProperty('bandwidth')
+				|| !source.hasOwnProperty('sample_rate')
 				|| !source.hasOwnProperty('hw_freq')
 				|| !source.hasOwnProperty('converter_offset')) {
 			alert('Error: incomplete source info sent.');
@@ -158,18 +158,18 @@
 		update_converter_offset(source.converter_offset);
 		update_source_name(source.source_name);
 		update_hw_freq(source.hw_freq);
-		update_bandwidth(source.bandwidth);
+		update_sample_rate(source.sample_rate);
 	}
 
 	function send_source(source_name) {
 		ws.send('{"source": \"' + source_name + '\"}');
 	}
 
-	function update_bandwidth(value) {
+	function update_sample_rate(value) {
 		var elem = document.getElementById('freq_offset');
-		bandwidth = value;
-		elem.min = -bandwidth/2;
-		elem.max = bandwidth/2;
+		sample_rate = value;
+		elem.min = -sample_rate/2;
+		elem.max = sample_rate/2;
 	}
 
 	function update_privileged(msg) {
@@ -267,9 +267,9 @@
 	}
 
 	function check_freq_offset(offset) {
-		if (bandwidth == null)
+		if (sample_rate == null)
 			return false;
-		if (offset < -bandwidth / 2 || offset > bandwidth / 2) {
+		if (offset < -sample_rate / 2 || offset > sample_rate / 2) {
 			alert("Frequency out of range");
 			return false;
 		}
