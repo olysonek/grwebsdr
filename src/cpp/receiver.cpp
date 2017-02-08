@@ -6,11 +6,14 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdexcept>
+#include <algorithm>
 
 using namespace std;
 using namespace gr;
 using namespace gr::analog;
 using namespace gr::filter;
+
+vector<string> receiver::supported_demods = { "WFM", "FM", "AM", "LSB", "USB", "CW" };
 
 receiver::sptr receiver::make(double src_rate, gr::top_block_sptr top_bl,
 			int fds[2])
@@ -22,14 +25,13 @@ receiver::receiver(double src_rate, gr::top_block_sptr top_bl, int fds[2])
 	: hier_block2("receiver", io_signature::make(1, 1, sizeof (gr_complex)),
 			io_signature::make(0, 0, 0)),
 	src_rate(src_rate), top_bl(top_bl), privileged(false),
-	audio_rate(24000), running(false),
-	demod_type(NO_DEMOD)
+	audio_rate(24000), running(false)
 {
 	this->fds[0] = fds[0];
 	this->fds[1] = fds[1];
 
 	sink = ogg_sink::make(fds[1], 1, audio_rate);
-	change_demod(WFM_DEMOD);
+	change_demod("WFM");
 }
 
 receiver::~receiver()
@@ -46,51 +48,42 @@ void receiver::connect_blocks()
 	connect(demod, 0, sink, 0);
 }
 
-void receiver::change_demod(receiver::demod_t d)
+bool receiver::change_demod(string d)
 {
 	int dec1 = 8; // Pre-demodulation decimation
 	double dec1_rate = src_rate / dec1; // Sample rate after first decimation
 	int offset = xlate == nullptr ? 0 : xlate->center_freq();
 	vector<gr_complex> taps;
 
+	if (find(supported_demods.begin(), supported_demods.end(), d)
+			== supported_demods.end()) {
+		return false;
+	}
 	disconnect_all();
-	switch (d) {
-	case receiver::WFM_DEMOD:
+	if (d == "WFM") {
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 75000, 25000));
 		demod = fm_demod::make(dec1_rate, audio_rate, 75000);
-		demod_type = WFM_DEMOD;
-		break;
-	case receiver::FM_DEMOD:
+	} else if (d == "FM") {
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 4000, 2000));
 		demod = fm_demod::make(dec1_rate, audio_rate, 4000);
-		demod_type = FM_DEMOD;
-		break;
-	case receiver::AM_DEMOD:
+	} else if (d == "AM") {
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 5000, 1000));
 		demod = am_demod::make(dec1_rate, audio_rate);
-		demod_type = AM_DEMOD;
-		break;
-	case receiver::USB_DEMOD:
+	} else if (d == "USB") {
 		taps = firdes::complex_band_pass(1.0, src_rate, 1, 5000, 1000);
 		demod = am_demod::make(dec1_rate, audio_rate);
-		demod_type = USB_DEMOD;
-		break;
-	case receiver::LSB_DEMOD:
+	} else if (d == "LSB") {
 		taps = firdes::complex_band_pass(1.0, src_rate, -5000, -1, 1000);
 		demod = am_demod::make(dec1_rate, audio_rate);
-		demod_type = LSB_DEMOD;
-		break;
-	case receiver::CW_DEMOD:
+	} else if (d == "CW") {
 		taps = firdes::complex_band_pass(1.0, src_rate, 1, 500, 500,
 				firdes::WIN_KAISER, 1.0);
 		demod = am_demod::make(dec1_rate, audio_rate);
-		demod_type = CW_DEMOD;
-		break;
-	default:
-		return;
 	}
+	cur_demod = d;
 	xlate = freq_xlating_fir_filter_ccc::make(dec1, taps, offset, src_rate);
 	connect_blocks();
+	return true;
 }
 
 void receiver::set_center_freq(double freq)

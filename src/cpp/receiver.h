@@ -11,12 +11,12 @@
 #include <osmosdr/source.h>
 #include <cstdio>
 #include <string>
+#include <vector>
 
 class receiver : public gr::hier_block2 {
 public:
 	typedef boost::shared_ptr<receiver> sptr;
-	enum demod_t { NO_DEMOD, WFM_DEMOD, FM_DEMOD, AM_DEMOD,
-			USB_DEMOD, LSB_DEMOD, CW_DEMOD };
+	static std::vector<std::string> supported_demods;
 
 	static sptr make(double src_rate, gr::top_block_sptr top_bl,
 			int fds[2]);
@@ -25,7 +25,7 @@ public:
 	~receiver();
 	bool get_privileged();
 	void set_privileged(bool val);
-	void change_demod(demod_t d);
+	bool change_demod(std::string d);
 	std::string get_source_name();
 	osmosdr::source::sptr get_source();
 	void set_source(std::string source_name);
@@ -47,7 +47,7 @@ private:
 	bool privileged;
 	int audio_rate;
 	bool running;
-	demod_t demod_type;
+	std::string cur_demod;
 
 	void connect_blocks();
 };

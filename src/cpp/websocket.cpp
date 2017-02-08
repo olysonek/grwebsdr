@@ -84,29 +84,14 @@ void change_demod(struct json_object *obj, receiver::sptr rec)
 {
 	struct json_object *demod_obj;
 	const char *demod;
-	receiver::demod_t d;
 
 	if (!json_object_object_get_ex(obj, "demod", &demod_obj)
 			|| json_object_get_type(demod_obj) != json_type_string)
 		return;
 	demod = json_object_get_string(demod_obj);
-	if (!strcmp(demod, "WFM"))
-		d = receiver::WFM_DEMOD;
-	else if (!strcmp(demod, "FM"))
-		d = receiver::FM_DEMOD;
-	else if (!strcmp(demod, "AM"))
-		d = receiver::AM_DEMOD;
-	else if (!strcmp(demod, "USB"))
-		d = receiver::USB_DEMOD;
-	else if (!strcmp(demod, "LSB"))
-		d = receiver::LSB_DEMOD;
-	else if (!strcmp(demod, "CW"))
-		d = receiver::CW_DEMOD;
-	else
-		return;
 
 	topbl->lock();
-	rec->change_demod(d);
+	rec->change_demod(demod);
 	topbl->unlock();
 }
 
