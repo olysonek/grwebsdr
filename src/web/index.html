@@ -21,9 +21,6 @@
 
 	function setup_websocket() {
 		ws = new WebSocket(ws_url, 'websocket');
-		ws.onopen = function (event) {
-			send_freq_offset('0');
-		};
 		ws.onerror = function (event) {
 			alert('WebSocket error');
 		};
