@@ -57,11 +57,31 @@ int receiver::trim_freq_offset(int offset, int src_rate)
 		return offset;
 }
 
+int optimal_decimation(int in_rate, int out_rate)
+{
+	// FIXME Optimize
+	int d;
+
+	for (d = 1; in_rate / d > out_rate; d *= 2)
+		;
+	d /= 2;
+	for (; in_rate / d > out_rate; ++d)
+		;
+	--d;
+	// For some reason, the AM demod doesn't work with sample rates
+	// like 25kHz, trying multiples of 4kHz
+	for (; in_rate % d != 0 || (in_rate / d) % 4000 != 0; --d)
+		;
+	if (d < 1)
+		d = 1;
+	return d;
+}
+
 bool receiver::change_demod(string d)
 {
-	double src_rate;
-	int dec1 = 8; // Pre-demodulation decimation
-	double dec1_rate;
+	int src_rate;
+	int dec;
+	int dec_rate;
 	int offset;
 	vector<gr_complex> taps;
 
@@ -75,30 +95,42 @@ bool receiver::change_demod(string d)
 	src_rate = source->get_sample_rate();
 	offset = xlate == nullptr ? 0
 			: trim_freq_offset(xlate->center_freq(), src_rate);
-	dec1_rate = src_rate / dec1; // Sample rate after first decimation;
 	disconnect_all();
+	// FIXME Please, pretty please, refactor me!
 	if (d == "WFM") {
+		dec = optimal_decimation(src_rate, 2 * (75000 + 25000));
+		dec_rate = src_rate / dec;
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 75000, 25000));
-		demod = fm_demod::make(dec1_rate, audio_rate, 75000);
+		demod = fm_demod::make(dec_rate, audio_rate, 75000, audio_rate / 2, 4000);
 	} else if (d == "FM") {
+		dec = optimal_decimation(src_rate, 2 * (4000 + 2000));
+		dec_rate = src_rate / dec;
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 4000, 2000));
-		demod = fm_demod::make(dec1_rate, audio_rate, 4000);
+		demod = fm_demod::make(dec_rate, audio_rate, 4000, 4000, 2000);
 	} else if (d == "AM") {
-		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 5000, 1000));
-		demod = am_demod::make(dec1_rate, audio_rate);
+		dec = optimal_decimation(src_rate, 2 * (4000 + 2000));
+		dec_rate = src_rate / dec;
+		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 4000, 2000));
+		demod = am_demod::make(dec_rate, audio_rate, 4000, 2000);
 	} else if (d == "USB") {
-		taps = firdes::complex_band_pass(1.0, src_rate, 1, 5000, 1000);
-		demod = am_demod::make(dec1_rate, audio_rate);
+		dec = optimal_decimation(src_rate, 2 * (4000 + 2000));
+		dec_rate = src_rate / dec;
+		taps = firdes::complex_band_pass(1.0, src_rate, 1, 4000, 2000);
+		demod = am_demod::make(dec_rate, audio_rate, 4000, 2000);
 	} else if (d == "LSB") {
-		taps = firdes::complex_band_pass(1.0, src_rate, -5000, -1, 1000);
-		demod = am_demod::make(dec1_rate, audio_rate);
+		dec = optimal_decimation(src_rate, 2 * (4000 + 2000));
+		dec_rate = src_rate / dec;
+		taps = firdes::complex_band_pass(1.0, src_rate, -4000, -1, 2000);
+		demod = am_demod::make(dec_rate, audio_rate, 4000, 2000);
 	} else if (d == "CW") {
+		dec = optimal_decimation(src_rate, 2 * (500 + 500));
+		dec_rate = src_rate / dec;
 		taps = firdes::complex_band_pass(1.0, src_rate, 1, 500, 500,
 				firdes::WIN_KAISER, 1.0);
-		demod = am_demod::make(dec1_rate, audio_rate);
+		demod = am_demod::make(dec_rate, audio_rate, 500, 500);
 	}
 	cur_demod = d;
-	xlate = freq_xlating_fir_filter_ccc::make(dec1, taps, offset, src_rate);
+	xlate = freq_xlating_fir_filter_ccc::make(dec, taps, offset, src_rate);
 	connect_blocks();
 	return true;
 }

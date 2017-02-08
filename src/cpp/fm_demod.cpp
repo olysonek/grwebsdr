@@ -6,13 +6,13 @@ using namespace gr;
 using namespace gr::analog;
 using namespace gr::filter;
 
-fm_demod::sptr fm_demod::make(int in_rate, int out_rate, int cutoff)
+fm_demod::sptr fm_demod::make(int in_rate, int out_rate, int cutoff, int out_cutoff, int out_trans)
 {
 	return boost::shared_ptr<fm_demod>(new fm_demod(in_rate, out_rate,
-				cutoff));
+				cutoff, out_cutoff, out_trans));
 }
 
-fm_demod::fm_demod(int in_rate, int out_rate, int cutoff)
+fm_demod::fm_demod(int in_rate, int out_rate, int cutoff, int out_cutoff, int out_trans)
 	: hier_block2("fm_demod", io_signature::make(1, 1, sizeof(gr_complex)),
 			io_signature::make(1, 1, sizeof(float)))
 {
@@ -22,7 +22,7 @@ fm_demod::fm_demod(int in_rate, int out_rate, int cutoff)
 
 	demod = quadrature_demod_cf::make(in_rate / (2 * M_PI * cutoff));
 	low_pass = fir_filter_fff::make(1, firdes::low_pass(1.0, in_rate,
-				out_rate / 2 - out_rate / 100, out_rate / 100));
+				out_cutoff, out_trans));
 	resampler = rational_resampler_base_fff::make(interpolation, decimation,
 			filter_f(interpolation, decimation, 0.4f));
 
