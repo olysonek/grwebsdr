@@ -170,6 +170,9 @@
 		sample_rate = value;
 		elem.min = -sample_rate/2;
 		elem.max = sample_rate/2;
+
+		elem = document.getElementById('sample_rate');
+		elem.innerHTML = 'Source sample rate: ' + value;
 	}
 
 	function update_privileged(msg) {
@@ -313,6 +316,7 @@
 	<br>
 
 	<label id="converter_offset"></label><br>
+	<label id="sample_rate"></label><br>
 	<label id="lbl_center_freq"></label><br>
 	<label id="lbl_receiver_freq"></label><br>
 
