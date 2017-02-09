@@ -219,7 +219,7 @@ void attach_init_data(struct json_object *obj, struct websocket_user_data *data)
 {
 	struct json_object *tmp;
 
-	tmp = json_object_new_string(data->stream_name.c_str());
+	tmp = json_object_new_string(data->stream_name);
 	json_object_object_add(obj, "stream_name", tmp);
 
 	attach_source_names(obj);
@@ -258,6 +258,7 @@ int init_websocket()
 int create_stream(struct websocket_user_data *data)
 {
 	int pipe_fds[2];
+	string tmp;
 
 	if (pipe(pipe_fds)) {
 		perror("pipe");
@@ -266,7 +267,11 @@ int create_stream(struct websocket_user_data *data)
 	if (set_nonblock(pipe_fds[0])) {
 		return -1;
 	}
-	data->stream_name = new_stream_name() + string(".ogg");
+	tmp = new_stream_name() + string(".ogg");
+	if (tmp.size() > STREAM_NAME_LEN)
+		return -1;
+	strncpy(data->stream_name, tmp.c_str(), tmp.size());
+	data->stream_name[tmp.size()] = '\0';
 	receiver_map[data->stream_name] = receiver::make(topbl, pipe_fds);
 	// Update number of clients
 	lws_callback_on_writable_all_protocol(ws_context, &protocols[1]);

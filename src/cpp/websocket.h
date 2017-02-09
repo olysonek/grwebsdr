@@ -1,13 +1,14 @@
 #ifndef WEBSOCKET_H
 #define WEBSOCKET_H
 
+#include "stuff.h"
 #include <string>
 #include <libwebsockets.h>
 
 #define WEBSOCKET_MAX_PAYLOAD 4096
 
 struct websocket_user_data {
-	std::string stream_name;
+	char stream_name[STREAM_NAME_LEN + 1];
 	bool initialized;
 	bool privileged_changed;
 	bool source_changed;

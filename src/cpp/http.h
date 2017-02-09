@@ -5,10 +5,11 @@
 #include <string>
 
 #define HTTP_MAX_PAYLOAD (1 << 14)
+#define MAX_URL_LEN 16
 
 struct http_user_data {
 	int fd;
-	std::string url;
+	char url[MAX_URL_LEN + 1];
 	char buf[LWS_PRE + HTTP_MAX_PAYLOAD];
 };
 

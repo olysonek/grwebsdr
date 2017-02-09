@@ -1,6 +1,7 @@
 #include "http.h"
 #include "stuff.h"
 #include "utils.h"
+#include <string.h>
 
 const char *stream_name(const char *url)
 {
@@ -128,12 +129,18 @@ int init_http_session(struct lws *wsi, void *user, void *in, size_t len)
 	puts("Received LWS_CALLBACK_HTTP");
 	printf("URL requested: %s\n", (char *) in);
 
+	if (len > MAX_URL_LEN) {
+		lws_return_http_status(wsi, HTTP_STATUS_NOT_FOUND, nullptr);
+		return -1;
+	}
+
 	data->fd = -1;
-	data->url = (char *) in;
+	strncpy(data->url, (char *) in, len);
+	data->url[len] = '\0';
 	stream = stream_name((char *) in);
 	if (stream) {
 		return handle_new_stream(wsi, stream, data);
-	} else if (data->url == "/" || data->url == "/index.html") {
+	} else if (!strcmp(data->url, "/") || !strcmp(data->url, "/index.html")) {
 		int n;
 		n = lws_serve_http_file(wsi, "../web/index.html", "text/html",
 				nullptr, 0);
@@ -153,7 +160,7 @@ void end_http_session(struct http_user_data *data)
 
 	if (!data)
 		return;
-	stream = stream_name(data->url.c_str());
+	stream = stream_name(data->url);
 	if (!stream)
 		return;
 	printf("Closing stream %s\n", stream);
