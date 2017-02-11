@@ -23,6 +23,7 @@ ssb_demod::ssb_demod(int in_rate, int out_rate, int cutoff, int trans)
 	agc = agc_cc::make(0.1f, 0.1f);
 	carrier = sig_source_c::make(in_rate, GR_SIN_WAVE, 0, 1);
 	add = add_cc::make();
+	// TODO experiment with adding the complex conjugate of agc's output
 	mag = complex_to_mag::make();
 	resampler = rational_resampler_base_fff::make(interpolation, decimation,
 			firdes::low_pass(1.0, in_rate, cutoff, trans));
