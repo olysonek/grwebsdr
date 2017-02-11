@@ -1,6 +1,7 @@
 #include "receiver.h"
 #include "fm_demod.h"
 #include "am_demod.h"
+#include "ssb_demod.h"
 #include "utils.h"
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -115,13 +116,13 @@ bool receiver::change_demod(string d)
 	} else if (d == "USB") {
 		dec = optimal_decimation(src_rate, 2 * (4000 + 2000));
 		dec_rate = src_rate / dec;
-		taps = firdes::complex_band_pass(1.0, src_rate, 1, 4000, 2000);
-		demod = am_demod::make(dec_rate, audio_rate, 4000, 2000);
+		taps = firdes::complex_band_pass(1.0, src_rate, 1020, 4000, 1000);
+		demod = ssb_demod::make(dec_rate, audio_rate, 4000, 2000);
 	} else if (d == "LSB") {
 		dec = optimal_decimation(src_rate, 2 * (4000 + 2000));
 		dec_rate = src_rate / dec;
-		taps = firdes::complex_band_pass(1.0, src_rate, -4000, -1, 2000);
-		demod = am_demod::make(dec_rate, audio_rate, 4000, 2000);
+		taps = firdes::complex_band_pass(1.0, src_rate, -4000, -1020, 1000);
+		demod = ssb_demod::make(dec_rate, audio_rate, 4000, 2000);
 	} else if (d == "CW") {
 		dec = optimal_decimation(src_rate, 2 * (500 + 500));
 		dec_rate = src_rate / dec;
