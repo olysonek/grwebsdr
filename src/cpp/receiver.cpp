@@ -63,6 +63,8 @@ int optimal_decimation(int in_rate, int out_rate)
 	// FIXME Optimize
 	int d;
 
+	if (in_rate < out_rate)
+		return 1;
 	for (d = 1; in_rate / d > out_rate; d *= 2)
 		;
 	d /= 2;
@@ -71,7 +73,7 @@ int optimal_decimation(int in_rate, int out_rate)
 	--d;
 	// For some reason, the AM demod doesn't work with sample rates
 	// like 25kHz, trying multiples of 4kHz
-	for (; in_rate % d != 0 || (in_rate / d) % 4000 != 0; --d)
+	for (; d > 1 && (in_rate % d != 0 || (in_rate / d) % 4000 != 0); --d)
 		;
 	if (d < 1)
 		d = 1;
