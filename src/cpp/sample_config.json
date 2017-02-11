@@ -1,13 +1,13 @@
 {
 	"sources": [
 		{
-			"name": "label='Realtek RTL2838UHIDIR SN: 00000001',rtl=0",
+			"osmosdr_arg": "label='Realtek RTL2838UHIDIR SN: 00000001',rtl=0",
 			"freq_converter_offset": 0,
 			"initial_hw_freq": 102000000,
 			"sample_rate": 1200000
 		},
 		{
-			"name": "label='Realtek RTL2838UHIDIR SN: 00000001',rtl=1",
+			"osmosdr_arg": "label='Realtek RTL2838UHIDIR SN: 00000001',rtl=1",
 			"freq_converter_offset": 0,
 			"initial_hw_freq": 103000000,
 			"sample_rate": 2400000

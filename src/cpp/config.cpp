@@ -11,7 +11,7 @@ using namespace std;
 
 bool add_source(struct json_object *obj)
 {
-	string name{""};
+	string osmosdr_arg{""};
 	int freq_converter_offset = 0;
 	int initial_hw_freq = 103000000;
 	int sample_rate = 2400000;
@@ -19,10 +19,10 @@ bool add_source(struct json_object *obj)
 	source_info_t info;
 
 	json_object_object_foreach(obj, key, tmp) {
-		if (!strcmp(key, "name")) {
+		if (!strcmp(key, "osmosdr_arg")) {
 			if (json_object_get_type(tmp) != json_type_string)
 				goto bad_format;
-			name = json_object_get_string(tmp);
+			osmosdr_arg = json_object_get_string(tmp);
 		} else if (!strcmp(key, "freq_converter_offset")) {
 			if (json_object_get_type(tmp) != json_type_int)
 				goto bad_format;
@@ -41,12 +41,12 @@ bool add_source(struct json_object *obj)
 			return false;
 		}
 	}
-	source = osmosdr::source::make(name);
+	source = osmosdr::source::make(osmosdr_arg);
 	source->set_sample_rate(sample_rate);
 	source->set_center_freq(initial_hw_freq);
-	osmosdr_sources.emplace(name, source);
+	osmosdr_sources.emplace(osmosdr_arg, source);
 	info.freq_converter_offset = freq_converter_offset;
-	sources_info.emplace(name, info);
+	sources_info.emplace(osmosdr_arg, info);
 	return true;
 bad_format:
 	puts("Bad format of config file.");
