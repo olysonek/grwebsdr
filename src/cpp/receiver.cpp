@@ -67,9 +67,13 @@ int optimal_decimation(int in_rate, int out_rate)
 		return 1;
 	for (d = 1; in_rate / d > out_rate; d *= 2)
 		;
+	if (in_rate / d == out_rate && in_rate % d == 0)
+		return d;
 	d /= 2;
 	for (; in_rate / d > out_rate; ++d)
 		;
+	if (in_rate / d == out_rate && in_rate % d == 0)
+		return d;
 	--d;
 	// For some reason, the AM demod doesn't work with sample rates
 	// like 25kHz, trying multiples of 4kHz
