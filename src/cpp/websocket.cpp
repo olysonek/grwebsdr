@@ -103,19 +103,23 @@ void change_source(struct json_object *obj, receiver::sptr rec,
 		struct websocket_user_data *data)
 {
 	struct json_object *source_obj;
-	const char *source_name;
+	int tmp;
+	size_t source_ix;
 
 	if (!json_object_object_get_ex(obj, "source", &source_obj)
-			|| json_object_get_type(source_obj) != json_type_string) {
+			|| json_object_get_type(source_obj) != json_type_int) {
 		return;
 	}
-	source_name = json_object_get_string(source_obj);
+	tmp = json_object_get_int(source_obj);
+	if (tmp < 0)
+		return;
+	source_ix = (size_t) tmp;
 
-	if (osmosdr_sources.find(source_name) == osmosdr_sources.end()) {
+	if (source_ix >= osmosdr_sources.size()) {
 		return;
 	}
 	topbl->lock();
-	rec->set_source(source_name);
+	rec->set_source(source_ix);
 	topbl->unlock();
 	data->source_changed = true;
 	data->offset_changed = true;
@@ -149,23 +153,23 @@ void attach_freq_offset(struct json_object *obj, receiver::sptr rec)
 	json_object_object_add(obj, "freq_offset", val_obj);
 }
 
-void attach_source_name(struct json_object *obj, receiver::sptr rec)
+void attach_source_ix(struct json_object *obj, receiver::sptr rec)
 {
 	struct json_object *val_obj;
-	string val;
+	int ix;
 
-	val = rec->get_source_name();
-	val_obj = json_object_new_string(val.c_str());
-	json_object_object_add(obj, "source_name", val_obj);
+	ix = (int) rec->get_source_ix();
+	val_obj = json_object_new_int(ix);
+	json_object_object_add(obj, "source_ix", val_obj);
 }
 
-void attach_source_names(struct json_object *obj)
+void attach_source_labels(struct json_object *obj)
 {
 	struct json_object *sources, *tmp;
 
 	sources = json_object_new_array();
-	for (auto pair : osmosdr_sources) {
-		tmp = json_object_new_string(pair.first.c_str());
+	for (source_info_t info : sources_info) {
+		tmp = json_object_new_string(info.label.c_str());
 		json_object_array_add(sources, tmp);
 	}
 	json_object_object_add(obj, "sources", sources);
@@ -184,7 +188,7 @@ void attach_converter_offset(struct json_object *obj, receiver::sptr rec)
 	struct json_object *tmp;
 	source_info_t i;
 
-	i = sources_info[rec->get_source_name()];
+	i = sources_info[rec->get_source_ix()];
 	tmp = json_object_new_int(i.freq_converter_offset);
 	json_object_object_add(obj, "converter_offset", tmp);
 }
@@ -196,7 +200,7 @@ void attach_source_info(struct json_object *obj, receiver::sptr rec)
 	if (rec->get_source() == nullptr)
 		return;
 	tmp = json_object_new_object();
-	attach_source_name(tmp, rec);
+	attach_source_ix(tmp, rec);
 	attach_hw_freq(tmp, rec);
 	attach_sample_rate(tmp, rec);
 	attach_converter_offset(tmp, rec);
@@ -222,7 +226,7 @@ void attach_init_data(struct json_object *obj, struct websocket_user_data *data)
 	tmp = json_object_new_string(data->stream_name);
 	json_object_object_add(obj, "stream_name", tmp);
 
-	attach_source_names(obj);
+	attach_source_labels(obj);
 	attach_supported_demods(obj);
 }
 

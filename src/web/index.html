@@ -77,12 +77,12 @@
 		}
 		for (i = 0; i < sources.length; ++i) {
 			var opt = document.createElement('option');
-			opt.value = sources[i];
+			opt.value = i;
 			opt.innerHTML = sources[i];
 			sel.appendChild(opt);
 		}
-		update_source_name(sources[0]);
-		send_source(sources[0]);
+		update_source(0);
+		send_source(0);
 	}
 
 	function update_demods(demods) {
@@ -102,9 +102,9 @@
 		send_demod(demods[0]);
 	}
 
-	function update_source_name(name) {
+	function update_source(ix) {
 		var sel = document.getElementById('select_source');
-		sel.value = name;
+		sel.value = ix;
 	}
 
 	function update_demod_name(demod) {
@@ -151,7 +151,7 @@
 	}
 
 	function source_changed(source) {
-		if (!source.hasOwnProperty('source_name')
+		if (!source.hasOwnProperty('source_ix')
 				|| !source.hasOwnProperty('sample_rate')
 				|| !source.hasOwnProperty('hw_freq')
 				|| !source.hasOwnProperty('converter_offset')) {
@@ -159,13 +159,13 @@
 			return;
 		}
 		update_converter_offset(source.converter_offset);
-		update_source_name(source.source_name);
+		update_source(source.source_ix);
 		update_hw_freq(source.hw_freq);
 		update_sample_rate(source.sample_rate);
 	}
 
-	function send_source(source_name) {
-		ws.send('{"source": \"' + source_name + '\"}');
+	function send_source(ix) {
+		ws.send('{"source": ' + ix + '}');
 	}
 
 	function update_sample_rate(value) {

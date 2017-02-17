@@ -17,15 +17,15 @@
 #include <unordered_map>
 #include <cstdlib>
 #include <osmosdr/device.h>
-#include <map>
+#include <vector>
 
 #define PORT 8080
 
 using namespace gr;
 using namespace std;
 
-map<string, osmosdr::source::sptr> osmosdr_sources;
-map<string, source_info_t> sources_info;
+vector<osmosdr::source::sptr> osmosdr_sources;
+vector<source_info_t> sources_info;
 unordered_map<string, receiver::sptr> receiver_map;
 string username;
 string password;
@@ -208,7 +208,7 @@ void add_sources_interactive()
 		if (should_use_source(str)) {
 			int offset, freq, sample_rate;
 			osmosdr::source::sptr source;
-			source_info_t i;
+			source_info_t info;
 
 			offset = ask_freq_converter_offset();
 			freq = ask_hw_freq();
@@ -216,9 +216,10 @@ void add_sources_interactive()
 			source = osmosdr::source::make(str);
 			source->set_sample_rate(sample_rate);
 			source->set_center_freq(freq);
-			osmosdr_sources.emplace(str, source);
-			i.freq_converter_offset = offset;
-			sources_info.emplace(str, i);
+			osmosdr_sources.push_back(source);
+			info.freq_converter_offset = offset;
+			info.label = str;
+			sources_info.push_back(info);
 		}
 	}
 }
@@ -269,8 +270,7 @@ int main(int argc, char **argv)
 
 	topbl = make_top_block("top_block");
 
-	for (auto pair : osmosdr_sources) {
-		osmosdr::source::sptr src = pair.second;
+	for (osmosdr::source::sptr src : osmosdr_sources) {
 		src->set_freq_corr(0.0);
 		src->set_dc_offset_mode(0);
 		src->set_iq_balance_mode(0);

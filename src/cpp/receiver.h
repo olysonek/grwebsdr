@@ -28,9 +28,9 @@ public:
 	void set_privileged(bool val);
 	bool change_demod(std::string d);
 	std::string get_current_demod();
-	std::string get_source_name();
+	size_t get_source_ix();
 	osmosdr::source::sptr get_source();
-	void set_source(std::string source_name);
+	void set_source(size_t ix);
 	bool is_ready();
 	bool is_running();
 	bool start();
@@ -38,7 +38,7 @@ public:
 
 private:
 	receiver(gr::top_block_sptr top_bl, int fds[2]);
-	std::string source_name;
+	size_t source_ix;
 	osmosdr::source::sptr source;
 	gr::top_block_sptr top_bl;
 	gr::filter::freq_xlating_fir_filter_ccc::sptr xlate;

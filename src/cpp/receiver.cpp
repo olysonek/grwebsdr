@@ -177,9 +177,9 @@ void receiver::set_privileged(bool val)
 	privileged = val;
 }
 
-string receiver::get_source_name()
+size_t receiver::get_source_ix()
 {
-	return source_name;
+	return source_ix;
 }
 
 osmosdr::source::sptr receiver::get_source()
@@ -187,11 +187,13 @@ osmosdr::source::sptr receiver::get_source()
 	return source;
 }
 
-void receiver::set_source(string source_name)
+void receiver::set_source(size_t ix)
 {
 	osmosdr::source::sptr old_source = source;
 
-	source = osmosdr_sources.at(source_name);
+	if (ix >= osmosdr_sources.size())
+		return;
+	source = osmosdr_sources[ix];
 	if (running)
 		top_bl->disconnect(old_source, 0, self(), 0);
 	if (old_source != nullptr && cur_demod != ""
@@ -201,7 +203,7 @@ void receiver::set_source(string source_name)
 	}
 	if (running)
 		top_bl->connect(source, 0, self(), 0);
-	this->source_name = source_name;
+	this->source_ix = ix;
 }
 
 bool receiver::start()
