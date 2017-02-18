@@ -1,3 +1,4 @@
+#include "auth.h"
 #include "websocket.h"
 #include "stuff.h"
 #include "utils.h"

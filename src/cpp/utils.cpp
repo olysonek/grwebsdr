@@ -94,11 +94,6 @@ char *load_file(const char *path)
 	return buf;
 }
 
-bool authenticate(string user, string pass)
-{
-	return user == username && pass == password;
-}
-
 int set_nonblock(int fd)
 {
 	int flags;

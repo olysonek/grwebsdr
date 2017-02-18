@@ -1,3 +1,4 @@
+#include "auth.h"
 #include "receiver.h"
 #include "stuff.h"
 #include "utils.h"
@@ -27,8 +28,6 @@ using namespace std;
 vector<osmosdr::source::sptr> osmosdr_sources;
 vector<source_info_t> sources_info;
 unordered_map<string, receiver::sptr> receiver_map;
-string username;
-string password;
 
 top_block_sptr topbl;
 
@@ -265,8 +264,8 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	username = get_username();
-	password = get_password();
+	set_admin_username(get_username());
+	set_admin_password(get_password());
 
 	topbl = make_top_block("top_block");
 
