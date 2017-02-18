@@ -60,6 +60,8 @@ Logout
 </div>
 
 <div style="clear: both; margin-top: 30px; float: left; width: 100%">
+<fieldset>
+<legend>Receiver</legend>
 <label id="lbl_receiver_freq"></label><br>
 
 <div style="clear: both; margin-top: 10px">
@@ -83,22 +85,23 @@ Logout
 </div>
 
 <input type="range" id="freq_offset" min="-1000000" max="1000000" value="0"
-	step="1" style="border: 1px; width: 90%; margin-top: 10px; margin-bottom: 10px"
+	step="1" style="border: 1px; width: 98%; margin-top: 10px; margin-bottom: 10px"
 	onchange="send_freq_offset(this.value)"
 	oninput="change_freq_offset_range()"><br>
 
-<div style="float: left; width: 45%; text-align: right; margin-right: 10px">
+<div style="float: left; width: 49%; text-align: right; margin-right: 10px">
 <button type="button" onclick="add_to_offset(-100000)">-100 kHz</button>
 <button type="button" onclick="add_to_offset(-10000)">-10 kHz</button>
 <button type="button" onclick="add_to_offset(-1000)">-1 kHz</button>
 <button type="button" onclick="add_to_offset(-100)">-100 Hz</button>
 </div>
-<div style="float: left; width: 45%; text-align: left; margin-left: 10px">
+<div style="float: left; width: 49%; text-align: left; margin-left: 10px">
 <button type="button" onclick="add_to_offset(100)">+100 Hz</button>
 <button type="button" onclick="add_to_offset(1000)">+1 kHz</button>
 <button type="button" onclick="add_to_offset(10000)">+10 kHz</button>
 <button type="button" onclick="add_to_offset(100000)">+100 kHz</button>
 </div>
+</fieldset>
 </div>
 
 <div style="clear: both; float: left; margin-top: 30px">
