@@ -12,8 +12,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <microhttpd.h>
-#include <mutex>
 #include <cstring>
 #include <unordered_map>
 #include <cstdlib>

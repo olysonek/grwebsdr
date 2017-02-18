@@ -2,7 +2,6 @@
 #define STUFF_H
 
 #include "receiver.h"
-#include <mutex>
 #include <unordered_map>
 #include <string>
 #include <libwebsockets.h>
