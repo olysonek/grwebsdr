@@ -259,9 +259,26 @@ function change_freq_offset_range() {
 	// of the range element)
 }
 
-function change_freq_offset_txt() {
+function change_receiver_freq_txt() {
 	var receiver_freq = document.getElementById("txt_receiver_freq").value;
 	var offset = receiver_freq - get_center_freq();
+	if (!check_freq_offset(offset))
+		return;
+	update_freq_offset(offset);
+	send_freq_offset(offset);
+}
+
+function change_freq_offset_txt() {
+	var offset = document.getElementById('txt_offset').value;
+	if (!check_freq_offset(offset))
+		return;
+	update_freq_offset(offset);
+	send_freq_offset(offset);
+}
+
+function add_to_offset(diff) {
+	var offset = freq_offset;
+	offset += diff;
 	if (!check_freq_offset(offset))
 		return;
 	update_freq_offset(offset);
@@ -281,6 +298,7 @@ function check_freq_offset(offset) {
 function update_freq_offset(offset) {
 	freq_offset = offset;
 	document.getElementById("freq_offset").value = offset;
+	document.getElementById('txt_offset').value = offset;
 	update_receiver_freq();
 }
 
