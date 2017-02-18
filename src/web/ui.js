@@ -122,9 +122,8 @@ function update_center_freq() {
 	var formatted = format_freq(freq);
 	elem.innerHTML = 'Center frequency: ' + formatted;
 
-	elem = document.getElementById('txt_center_freq');
-	if (elem != null)
-		elem.value = freq;
+	elem = document.getElementById('center_freq');
+	elem.value = formatted;
 }
 
 function update_receiver_freq() {
@@ -134,7 +133,7 @@ function update_receiver_freq() {
 	elem.innerHTML = 'Receiver frequency: ' + formatted;
 
 	elem = document.getElementById('txt_receiver_freq');
-	elem.value = freq;
+	elem.value = format_freq(freq);
 }
 
 function update_converter_offset(offset) {
@@ -227,7 +226,6 @@ function show_privileged_ui() {
 	elem.style.display = 'block';
 
 	elem = document.getElementById('center_freq');
-	elem.value = get_center_freq();
 }
 
 function hide_privileged_ui() {
@@ -343,7 +341,7 @@ function check_freq_offset(offset) {
 function update_freq_offset(offset) {
 	freq_offset = offset;
 	document.getElementById("freq_offset").value = offset;
-	document.getElementById('txt_offset').value = offset;
+	document.getElementById('txt_offset').value = format_freq(offset);
 	update_receiver_freq();
 }
 
