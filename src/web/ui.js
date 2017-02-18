@@ -182,7 +182,7 @@ function update_sample_rate(value) {
 	elem.max = sample_rate/2;
 
 	elem = document.getElementById('sample_rate');
-	elem.innerHTML = 'Sample rate: ' + value;
+	elem.innerHTML = 'Sample rate: ' + value + ' S/s';
 }
 
 function update_privileged(msg) {
@@ -275,9 +275,9 @@ function parse_freq(str) {
 	if (ix == 0)
 		return ret;
 	str = str.slice(0, ix).trim();
-	if (str.search("^[0123456789]+$") < 0)
+	if (str.search("^-?[0123456789]+(\\.[0123456789]+)?$") < 0)
 		return ret;
-	ret.value = parseInt(str) * mult;
+	ret.value = Math.floor(parseFloat(str) * mult);
 	ret.ok = true;
 	return ret;
 }
