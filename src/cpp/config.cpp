@@ -17,6 +17,7 @@ bool add_source(struct json_object *obj)
 	int freq_converter_offset = 0;
 	int initial_hw_freq = 103000000;
 	int sample_rate = 2400000;
+	double freq_corr = 0.0;
 	osmosdr::source::sptr source;
 	source_info_t info;
 
@@ -33,6 +34,10 @@ bool add_source(struct json_object *obj)
 			if (json_object_get_type(tmp) != json_type_string)
 				goto bad_format;
 			description = json_object_get_string(tmp);
+		} else if (!strcmp(key, "freq_correction")) {
+			if (json_object_get_type(tmp) != json_type_double)
+				goto bad_format;
+			freq_corr = json_object_get_double(tmp);
 		} else if (!strcmp(key, "freq_converter_offset")) {
 			if (json_object_get_type(tmp) != json_type_int)
 				goto bad_format;
@@ -54,6 +59,7 @@ bool add_source(struct json_object *obj)
 	if (label == "")
 		label = osmosdr_arg;
 	source = osmosdr::source::make(osmosdr_arg);
+	source->set_freq_corr(freq_corr);
 	source->set_sample_rate(sample_rate);
 	source->set_center_freq(initial_hw_freq);
 	osmosdr_sources.push_back(source);

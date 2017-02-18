@@ -4,6 +4,7 @@
 			"osmosdr_arg": "rtl=0",
 			"label": "Realtek RTL2838UHIDIR SN: 00000001 #0",
 			"description": "RTL-SDR tuner in Brno",
+			"freq_correction": 10.0,
 			"freq_converter_offset": 0,
 			"initial_hw_freq": 102000000,
 			"sample_rate": 1200000
