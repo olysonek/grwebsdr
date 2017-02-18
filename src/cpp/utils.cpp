@@ -52,48 +52,6 @@ std::vector<gr_complex> taps_f2c(std::vector<float> vec)
 	return ret;
 }
 
-char *load_file(const char *path)
-{
-	int fd;
-	char *buf = nullptr;
-	size_t len = 0, buflen = 0;
-	ssize_t res;
-	const size_t inc = 1024;
-	char *tmp;
-
-	fd = open(path, O_RDONLY);
-	if (fd < 0) {
-		perror("open");
-		return nullptr;
-	}
-	while (1) {
-		buflen += inc;
-		tmp = (char *) realloc(buf, buflen);
-		if (!tmp) {
-			free(buf);
-			close(fd);
-			return nullptr;
-		}
-		buf = tmp;
-		while (len < buflen - 1
-				&& (res = read(fd, buf + len,
-				buflen - len - 1)) > 0) {
-			len += res;
-		}
-		if (res < 0) {
-			perror("read");
-			free(buf);
-			close(fd);
-			return nullptr;
-		} else if (res == 0) {
-			break;
-		}
-	}
-	close(fd);
-	buf[len] = 0;
-	return buf;
-}
-
 int set_nonblock(int fd)
 {
 	int flags;
