@@ -29,6 +29,4 @@ extern int count_pollfds;
 extern int max_fds;
 extern struct lws **fd2wsi;
 
-void *ws_loop(void *);
-
 #endif
