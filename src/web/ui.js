@@ -210,7 +210,13 @@ function update_privileged(msg) {
 }
 
 function send_hw_freq() {
-	var freq = parseInt(document.getElementById('center_freq').value);
+	var freq = document.getElementById('center_freq').value;
+	var tmp = parse_freq(freq);
+	if (!tmp.ok) {
+		alert('Bad format');
+		return;
+	}
+	freq = tmp.value;
 	freq -= converter_offset;
 	freq_change_requested = true;
 	ws.send('{"hw_freq":' + freq + '}');
@@ -249,6 +255,33 @@ function send_freq_offset(offset) {
 	ws.send('{"freq_offset":' + offset + '}');
 }
 
+function parse_freq(str) {
+	var mult = 1;
+	var ret = {};
+	var ix;
+	ret.ok = false;
+	str = str.trim().toLowerCase();
+	if (str.endsWith('mhz')) {
+		mult = 1000000;
+		ix = str.lastIndexOf('mhz');
+	} else if (str.endsWith('khz')) {
+		mult = 1000;
+		ix = str.lastIndexOf('khz');
+	} else if (str.endsWith('hz')) {
+		ix = str.lastIndexOf('hz');
+	} else {
+		ix = str.length;
+	}
+	if (ix == 0)
+		return ret;
+	str = str.slice(0, ix).trim();
+	if (str.search("^[0123456789]+$") < 0)
+		return ret;
+	ret.value = parseInt(str) * mult;
+	ret.ok = true;
+	return ret;
+}
+
 function change_freq_offset_range() {
 	var offset = parseInt(document.getElementById("freq_offset").value);
 	if (!check_freq_offset(offset))
@@ -261,6 +294,12 @@ function change_freq_offset_range() {
 
 function change_receiver_freq_txt() {
 	var receiver_freq = document.getElementById("txt_receiver_freq").value;
+	var tmp = parse_freq(receiver_freq);
+	if (!tmp.ok) {
+		alert('Bad format');
+		return;
+	}
+	receiver_freq = tmp.value;
 	var offset = receiver_freq - get_center_freq();
 	if (!check_freq_offset(offset))
 		return;
@@ -270,6 +309,12 @@ function change_receiver_freq_txt() {
 
 function change_freq_offset_txt() {
 	var offset = document.getElementById('txt_offset').value;
+	var tmp = parse_freq(offset);
+	if (!tmp.ok) {
+		alert('Bad format');
+		return;
+	}
+	offset = tmp.value;
 	if (!check_freq_offset(offset))
 		return;
 	update_freq_offset(offset);
