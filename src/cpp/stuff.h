@@ -19,8 +19,6 @@ extern std::unordered_map<std::string, receiver::sptr> receiver_map;
 extern std::vector<osmosdr::source::sptr> osmosdr_sources;
 extern std::vector<source_info_t> sources_info;
 extern gr::top_block_sptr topbl;
-extern std::string username;
-extern std::string password;
 extern struct lws_context *ws_context;
 extern const struct lws_protocols protocols[];
 extern struct lws_pollfd *pollfds;
