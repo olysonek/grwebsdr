@@ -1,5 +1,5 @@
-#ifndef STUFF_H
-#define STUFF_H
+#ifndef GLOBALS_H
+#define GLOBALS_H
 
 #include "receiver.h"
 #include <unordered_map>
