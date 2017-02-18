@@ -6,12 +6,7 @@
 #include "http.h"
 #include "config.h"
 #include <iostream>
-#include <cmath>
 #include <cstdio>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <cstring>
 #include <unordered_map>
 #include <cstdlib>

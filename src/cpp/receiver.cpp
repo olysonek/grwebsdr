@@ -3,10 +3,6 @@
 #include "am_demod.h"
 #include "ssb_demod.h"
 #include "utils.h"
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <stdexcept>
 #include <algorithm>
 
 using namespace std;
