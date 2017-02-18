@@ -151,7 +151,7 @@ function update_source_description(description) {
 	if (description == '')
 		elem.innerHTML = '';
 	else
-		elem.innerHTML = 'Source description: ' + description;
+		elem.innerHTML = 'Description: ' + description;
 }
 
 function source_changed(source) {
@@ -182,7 +182,7 @@ function update_sample_rate(value) {
 	elem.max = sample_rate/2;
 
 	elem = document.getElementById('sample_rate');
-	elem.innerHTML = 'Source sample rate: ' + value;
+	elem.innerHTML = 'Sample rate: ' + value;
 }
 
 function update_privileged(msg) {
@@ -195,49 +195,38 @@ function update_privileged(msg) {
 			btn.value = 'Login';
 			user.style.display = 'inline';
 			pass.style.display = 'inline';
-			removePrivilegedUI();
+			hide_privileged_ui();
 		} else if (!privileged && msg.privileged) {
 			privileged = true;
 			btn.value = 'Logout';
 			user.style.display = 'none';
 			user.value = '';
 			pass.style.display = 'none';
-			addPrivilegedUI();
+			show_privileged_ui();
 		} else if (!privileged && !msg.privileged) {
 			alert('Login failed.');
 		}
 	}
 }
 
-function addPrivilegedUI() {
-	var form = document.createElement("form");
-	form.id = "form_center_freq";
-	form.action = "#";
-	form.onsubmit = function() {
-		var freq = parseInt(document.getElementById('center_freq').value);
-		freq -= converter_offset;
-		freq_change_requested = true;
-		ws.send('{"hw_freq":' + freq + '}');
-	};
-
-	var e = document.createElement("input");
-	e.type = "text";
-	e.id = "center_freq";
-	e.value = get_center_freq();
-	form.appendChild(e);
-
-	e = document.createElement("input");
-	e.type = "submit";
-	e.value = "Change center frequency";
-	form.appendChild(e);
-
-	document.body.appendChild(form);
+function send_hw_freq() {
+	var freq = parseInt(document.getElementById('center_freq').value);
+	freq -= converter_offset;
+	freq_change_requested = true;
+	ws.send('{"hw_freq":' + freq + '}');
 }
 
-function removePrivilegedUI() {
-	var e = document.getElementById("form_center_freq");
-	e.outerHTML = "";
-	delete e;
+function show_privileged_ui() {
+	var elem = document.getElementById('div_privileged');
+	elem.style.display = 'block';
+
+	elem = document.getElementById('center_freq');
+	elem.value = get_center_freq();
+}
+
+function hide_privileged_ui() {
+	var elem = document.getElementById("div_privileged");
+	elem.style.display = 'none';
 }
 
 function format_freq(freq) {

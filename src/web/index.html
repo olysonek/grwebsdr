@@ -10,10 +10,29 @@
 </form>
 <br>
 
+<div style="float: left; width: 30%">
+<fieldset>
+<legend>Source information</legend>
+<select onchange="send_source(this.value)" id="select_source">
+</select><br>
 <label id="source_description"></label><br>
 <label id="converter_offset"></label><br>
 <label id="sample_rate"></label><br>
 <label id="lbl_center_freq"></label><br>
+</fieldset>
+</div>
+
+<div id="div_privileged" style="float: left; position: absolute; left: 50%; display: none">
+<fieldset>
+<legend>Privileged options</legend>
+<form action="#" onsubmit="send_hw_freq()">
+<input type="text" id="center_freq">
+<input type="submit" value="Change center frequency">
+</form>
+</fieldset>
+</div>
+
+<div style="clear: both; margin-top: 20px; float: left; width: 100%">
 <label id="lbl_receiver_freq"></label><br>
 
 <input type="range" id="freq_offset" min="-1000000" max="1000000" value="0"
@@ -29,11 +48,11 @@
 <label for="select_demod">Demodulation: </label>
 <select onchange="send_demod(this.value)" id="select_demod">
 </select><br>
+</div>
 
-<label for="select_source">Source: </label>
-<select onchange="send_source(this.value)" id="select_source">
-</select><br>
+<div style="clear: both; float: left; margin-top: 30px">
 <label id="num_clients"></label>
+</div>
 
 </body>
 </html>
