@@ -146,6 +146,14 @@ function update_converter_offset(offset) {
 	update_receiver_freq();
 }
 
+function update_source_description(description) {
+	var elem = document.getElementById('source_description');
+	if (description == '')
+		elem.innerHTML = '';
+	else
+		elem.innerHTML = 'Source description: ' + description;
+}
+
 function source_changed(source) {
 	if (!source.hasOwnProperty('source_ix')
 			|| !source.hasOwnProperty('sample_rate')
@@ -158,6 +166,9 @@ function source_changed(source) {
 	update_source(source.source_ix);
 	update_hw_freq(source.hw_freq);
 	update_sample_rate(source.sample_rate);
+	if (source.hasOwnProperty('description')) {
+		update_source_description(source.description);
+	}
 }
 
 function send_source(ix) {

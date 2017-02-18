@@ -164,6 +164,16 @@ void attach_source_ix(struct json_object *obj, receiver::sptr rec)
 	json_object_object_add(obj, "source_ix", val_obj);
 }
 
+void attach_source_description(struct json_object *obj, receiver::sptr rec)
+{
+	struct json_object *tmp;
+	size_t ix;
+
+	ix = rec->get_source_ix();
+	tmp = json_object_new_string(sources_info[ix].description.c_str());
+	json_object_object_add(obj, "description", tmp);
+}
+
 void attach_source_labels(struct json_object *obj)
 {
 	struct json_object *sources, *tmp;
@@ -202,6 +212,7 @@ void attach_source_info(struct json_object *obj, receiver::sptr rec)
 		return;
 	tmp = json_object_new_object();
 	attach_source_ix(tmp, rec);
+	attach_source_description(tmp, rec);
 	attach_hw_freq(tmp, rec);
 	attach_sample_rate(tmp, rec);
 	attach_converter_offset(tmp, rec);

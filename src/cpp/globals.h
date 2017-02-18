@@ -11,6 +11,7 @@
 
 typedef struct {
 	std::string label;
+	std::string description;
 	int freq_converter_offset;
 } source_info_t;
 
