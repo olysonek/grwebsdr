@@ -186,21 +186,19 @@ function update_sample_rate(value) {
 
 function update_privileged(msg) {
 	if (msg.hasOwnProperty('privileged')) {
-		var btn = document.getElementById('btn_login');
-		var user = document.getElementById('username');
-		var pass = document.getElementById('password');
+		var modal = document.getElementById('login_modal');
+		var btn_show_login = document.getElementById('btn_show_login');
+		var btn_logout = document.getElementById('btn_logout');
 		if (privileged && !msg.privileged) {
+			btn_logout.style.display = 'none';
+			btn_show_login.style.display = 'inline';
 			privileged = false;
-			btn.value = 'Login';
-			user.style.display = 'inline';
-			pass.style.display = 'inline';
 			hide_privileged_ui();
 		} else if (!privileged && msg.privileged) {
+			modal.style.display = 'none';
+			btn_show_login.style.display = 'none';
+			btn_logout.style.display = 'inline';
 			privileged = true;
-			btn.value = 'Logout';
-			user.style.display = 'none';
-			user.value = '';
-			pass.style.display = 'none';
 			show_privileged_ui();
 		} else if (!privileged && !msg.privileged) {
 			alert('Login failed.');
@@ -350,17 +348,25 @@ function init_audio(stream_name) {
 	audio.play();
 }
 
-function toggle_login() {
-	if (privileged) {
-		ws.send('{"logout":null}');
-	} else {
-		var obj = {};
-		obj.login = {};
-		obj.login.user = document.getElementById('username').value;
-		obj.login.pass = document.getElementById('password').value;
-		document.getElementById('password').value = '';
-		ws.send(JSON.stringify(obj));
-	}
+function show_login(val) {
+	if (val)
+		val = 'block';
+	else
+		val = 'none';
+	document.getElementById('login_modal').style.display = val;
+}
+
+function logout() {
+	ws.send('{"logout":null}');
+}
+
+function login() {
+	var obj = {};
+	obj.login = {};
+	obj.login.user = document.getElementById('username').value;
+	obj.login.pass = document.getElementById('password').value;
+	document.getElementById('password').value = '';
+	ws.send(JSON.stringify(obj));
 }
 
 function send_demod(val) {

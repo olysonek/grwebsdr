@@ -1,16 +1,43 @@
 <!DOCTYPE html>
 <html>
+<head>
+<style>
+.modal {
+	display: none; position: fixed; z-index: 1;
+	left: 0; top: 0; width: 100%; height: 100%; overflow: auto;
+	background-color: rgba(0,0,0,0.4)
+}
+.modal_content {
+	margin-top: 10%; border: 1px solid; width: 100%; padding: 20px;
+	background-color: #ffffff; text-align: center
+}
+</style>
+</head>
 <body>
 <script src="ui.js"></script>
 
-<form action="#" onsubmit="toggle_login()">
-	<input type="text" id="username">
-	<input type="password" id="password">
-	<input type="submit" value="Login" id="btn_login">
-</form>
+<button type="button" id="btn_show_login" onclick="show_login(true)">
+Login
+</button>
+<button type="button" id="btn_logout" style="display: none" onclick="logout()">
+Logout
+</button>
 <br>
 
-<div style="float: left; width: 30%">
+<div id="login_modal" class="modal">
+<div class="modal_content">
+<form action="#" onsubmit="login()">
+	<label for="username">User name:</label><br>
+	<input type="text" id="username"><br>
+	<label for="password">Password:</label><br>
+	<input type="password" id="password"><br><br>
+	<button type="button" onclick="show_login(false)">Cancel</button>
+	<input type="submit" value="Login">
+</form>
+</div>
+</div>
+
+<div style="float: left; width: 30%; margin-top: 20px">
 <fieldset>
 <legend>Source</legend>
 <select onchange="send_source(this.value)" id="select_source">
@@ -22,7 +49,7 @@
 </fieldset>
 </div>
 
-<div id="div_privileged" style="float: left; position: absolute; left: 50%; display: none">
+<div id="div_privileged" style="float: left; position: absolute; left: 50%; display: none; margin-top: 20px">
 <fieldset>
 <legend>Privileged options</legend>
 <form action="#" onsubmit="send_hw_freq()">
