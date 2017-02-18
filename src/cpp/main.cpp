@@ -274,7 +274,6 @@ int main(int argc, char **argv)
 	for (osmosdr::source::sptr src : osmosdr_sources) {
 		src->set_dc_offset_mode(0);
 		src->set_iq_balance_mode(0);
-		src->set_gain_mode(true);
 		src->set_bandwidth(0.0);
 	}
 

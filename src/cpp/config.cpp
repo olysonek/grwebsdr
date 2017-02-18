@@ -18,6 +18,9 @@ bool add_source(struct json_object *obj)
 	int initial_hw_freq = 103000000;
 	int sample_rate = 2400000;
 	double freq_corr = 0.0;
+	bool auto_gain = true;
+	double gain = 1.0;
+	bool got_gain = false;
 	osmosdr::source::sptr source;
 	source_info_t info;
 
@@ -50,6 +53,27 @@ bool add_source(struct json_object *obj)
 			if (json_object_get_type(tmp) != json_type_int)
 				goto bad_format;
 			sample_rate = json_object_get_int(tmp);
+		} else if (!strcmp(key, "auto_gain")) {
+			if (json_object_get_type(tmp) != json_type_boolean)
+				goto bad_format;
+			auto_gain = json_object_get_boolean(tmp);
+			if (got_gain && auto_gain) {
+				puts("Error: Setting automatic gain and"
+						"gain value at the same time.");
+				return false;
+			}
+			got_gain = true;
+		} else if (!strcmp(key, "gain")) {
+			if (json_object_get_type(tmp) != json_type_double)
+				goto bad_format;
+			gain = json_object_get_double(tmp);
+			if (got_gain && auto_gain) {
+				puts("Error: Setting automatic gain and"
+						"gain value at the same time.");
+				return false;
+			}
+			auto_gain = false;
+			got_gain = true;
 		} else {
 			printf("Unknown source parameter in config file: %s\n",
 					key);
@@ -62,6 +86,12 @@ bool add_source(struct json_object *obj)
 	source->set_freq_corr(freq_corr);
 	source->set_sample_rate(sample_rate);
 	source->set_center_freq(initial_hw_freq);
+	if (auto_gain) {
+		source->set_gain_mode(true);
+	} else {
+		source->set_gain_mode(false);
+		source->set_gain(gain);
+	}
 	osmosdr_sources.push_back(source);
 	info.label = label;
 	info.description = description;
