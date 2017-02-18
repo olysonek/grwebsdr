@@ -205,7 +205,10 @@ void add_sources_interactive()
 			offset = ask_freq_converter_offset();
 			freq = ask_hw_freq();
 			sample_rate = ask_sample_rate();
+
 			source = osmosdr::source::make(str);
+			source->set_freq_corr(0.0);
+			source->set_gain_mode(true);
 			source->set_sample_rate(sample_rate);
 			source->set_center_freq(freq);
 			osmosdr_sources.push_back(source);
