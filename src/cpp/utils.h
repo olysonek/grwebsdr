@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "stuff.h"
+#include "globals.h"
 #include <vector>
 #include <string>
 #include <gnuradio/gr_complex.h>

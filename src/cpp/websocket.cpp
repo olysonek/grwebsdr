@@ -1,6 +1,6 @@
 #include "auth.h"
 #include "websocket.h"
-#include "stuff.h"
+#include "globals.h"
 #include "utils.h"
 #include "receiver.h"
 #include <atomic>

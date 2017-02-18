@@ -1,5 +1,5 @@
 #include "http.h"
-#include "stuff.h"
+#include "globals.h"
 #include "utils.h"
 #include <string.h>
 

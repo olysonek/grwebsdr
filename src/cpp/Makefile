@@ -1,5 +1,5 @@
 .PHONY: all
-all: main.cpp receiver.cpp receiver.h ogg_sink.h ogg_sink.cpp stuff.h \
+all: main.cpp receiver.cpp receiver.h ogg_sink.h ogg_sink.cpp globals.h \
 	websocket.cpp websocket.h utils.cpp utils.h fm_demod.cpp fm_demod.h \
 	ssb_demod.cpp ssb_demod.h \
 	am_demod.cpp am_demod.h \

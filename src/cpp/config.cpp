@@ -1,5 +1,5 @@
 #include "config.h"
-#include "stuff.h"
+#include "globals.h"
 #include <json-c/json_object.h>
 #include <json-c/json_util.h>
 #include <json-c/linkhash.h>

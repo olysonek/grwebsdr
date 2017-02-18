@@ -1,6 +1,6 @@
 #include "auth.h"
 #include "receiver.h"
-#include "stuff.h"
+#include "globals.h"
 #include "utils.h"
 #include "websocket.h"
 #include "http.h"
