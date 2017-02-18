@@ -1,12 +1,9 @@
 #include "utils.h"
-#include <gnuradio/filter/firdes.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 using namespace std;
-using namespace gr::filter;
 
 std::vector<gr_complex> taps_f2c(std::vector<float> vec)
 {

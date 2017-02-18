@@ -3,7 +3,6 @@
 
 #include "globals.h"
 #include <vector>
-#include <string>
 #include <gnuradio/gr_complex.h>
 
 std::vector<gr_complex> taps_f2c(std::vector<float> vec);
