@@ -12,8 +12,7 @@
 #include <cstdlib>
 #include <osmosdr/device.h>
 #include <vector>
-
-#define PORT 8080
+#include <stdexcept>
 
 using namespace gr;
 using namespace std;
@@ -32,6 +31,7 @@ void usage(const char *progname)
 	printf("         -k private_key_file\n");
 	printf("         -s                     Scan for sources\n");
 	printf("         -f config_file\n");
+	printf("         -p port number\n");
 }
 
 string get_username()
@@ -119,7 +119,7 @@ int count_pollfds;
 int max_fds;
 struct lws **fd2wsi;
 
-int run(const char *key_path, const char *cert_path)
+int run(const char *key_path, const char *cert_path, int port)
 {
 	struct lws_context_creation_info info;
 	int n;
@@ -136,7 +136,7 @@ int run(const char *key_path, const char *cert_path)
 	add_pollfd(STDIN_FILENO, POLLIN);
 
 	memset(&info, 0, sizeof(info));
-	info.port = PORT;
+	info.port = port;
 	info.iface = nullptr;
 	info.protocols = protocols;
 	info.gid = -1;
@@ -220,9 +220,10 @@ int main(int argc, char **argv)
 {
 	const char *cert_path = nullptr, *key_path = nullptr;
 	const char *config_path = nullptr;
+	int port = 8080;
 	int c;
 
-	while ((c = getopt(argc, argv, "hc:k:sf:")) != -1) {
+	while ((c = getopt(argc, argv, "hc:k:sf:p:")) != -1) {
 		switch (c) {
 		case 'h':
 			usage(argv[0]);
@@ -238,6 +239,14 @@ int main(int argc, char **argv)
 			return 0;
 		case 'f':
 			config_path = optarg;
+			break;
+		case 'p':
+			try {
+				port = stoi(optarg);
+			} catch (invalid_argument& e) {
+				usage(argv[0]);
+				return 1;
+			}
 			break;
 		default:
 			usage(argv[0]);
@@ -270,7 +279,7 @@ int main(int argc, char **argv)
 		src->set_bandwidth(0.0);
 	}
 
-	run(key_path, cert_path);
+	run(key_path, cert_path, port);
 
 	getchar();
 	topbl->stop();
