@@ -147,6 +147,13 @@ int init_http_session(struct lws *wsi, void *user, void *in, size_t len)
 		if (n < 0 || ((n > 0) && lws_http_transaction_completed(wsi)))
 			return -1;
 		return 0;
+	} else if (!strcmp(data->url, "/ui.js")) {
+		int n;
+		n = lws_serve_http_file(wsi, "../web/ui.js", "text/javascript",
+				nullptr, 0);
+		if (n < 0 || ((n > 0) && lws_http_transaction_completed(wsi)))
+			return -1;
+		return 0;
 	} else {
 		lws_return_http_status(wsi, HTTP_STATUS_NOT_FOUND, nullptr);
 		return -1;
