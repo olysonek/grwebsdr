@@ -171,6 +171,10 @@ void end_http_session(struct http_user_data *data)
 	if (!stream)
 		return;
 	printf("Closing stream %s\n", stream);
+	if (data->fd >= 0) {
+		delete_pollfd(data->fd);
+		fd2wsi[data->fd] = nullptr;
+	}
 	auto iter = receiver_map.find(stream);
 	if (iter == receiver_map.end())
 		return;
@@ -182,8 +186,6 @@ void end_http_session(struct http_user_data *data)
 	topbl->lock();
 	rec->stop();
 	topbl->unlock();
-	delete_pollfd(data->fd);
-	fd2wsi[data->fd] = nullptr;
 }
 
 int send_audio(struct lws *wsi, struct http_user_data *data)
