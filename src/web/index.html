@@ -11,9 +11,12 @@
 	margin-top: 10%; border: 1px solid; width: 100%; padding: 20px;
 	background-color: #ffffff; text-align: center
 }
+.fieldset {
+	background-color: linen
+}
 </style>
 </head>
-<body>
+<body style="background-color: azure">
 <script src="ui.js"></script>
 
 <button type="button" id="btn_show_login" onclick="show_login(true)">
@@ -37,8 +40,8 @@ Logout
 </div>
 </div>
 
-<div style="float: left; width: 30%; margin-top: 20px">
-<fieldset>
+<div style="float: left; max-width: 48%; margin-top: 20px">
+<fieldset class="fieldset">
 <legend>Source</legend>
 <select onchange="send_source(this.value)" id="select_source">
 </select><br>
@@ -49,8 +52,8 @@ Logout
 </fieldset>
 </div>
 
-<div id="div_privileged" style="float: left; position: absolute; left: 50%; display: none; margin-top: 20px">
-<fieldset>
+<div id="div_privileged" style="float: left; position: absolute; left: 52%; display: none; margin-top: 20px">
+<fieldset class="fieldset">
 <legend>Privileged options</legend>
 <form action="#" onsubmit="send_hw_freq()">
 <input type="text" id="center_freq">
@@ -60,7 +63,7 @@ Logout
 </div>
 
 <div style="clear: both; margin-top: 30px; float: left; width: 100%">
-<fieldset>
+<fieldset class="fieldset">
 <legend>Receiver</legend>
 <label id="lbl_receiver_freq"></label><br>
 
