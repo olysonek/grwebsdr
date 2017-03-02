@@ -6,33 +6,41 @@ GrWebSDR is a web SDR receiver.
 Build requirements
 ------------------
 On Fedora, you will need the following packages:
-gnuradio-devel
-boost-devel
-libvorbis-devel
-libogg-devel
-libwebsockets-devel
-json-c-devel
-gr-osmosdr-devel
+* gnuradio-devel
+* boost-devel
+* libvorbis-devel
+* libogg-devel
+* libwebsockets-devel
+* json-c-devel
+* gr-osmosdr-devel
 
 Build instructions
 ------------------
+```
 $ cd src/cpp
 $ make
+```
 
 How to run it
 -------------
+```
 $ ./main
+```
 You will be asked to enter some parameters for your tuner. If you don't want
 to fill in the parameters each time you run the server, you can create
-a configuration file (see the file sample_config.json) and run it as
+a configuration file (see the file `sample_config.json`) and run it as
+```
 $ ./main -f <config file>
+```
 
 You will also be asked to enter a new admin user name + password for the web UI.
 
 Now visit http://localhost:8080/ in your browser.
 
 For more options see the output of
+```
 $ ./main -h
+```
 
 Known bugs
 ----------
