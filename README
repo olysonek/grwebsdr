@@ -1,8 +1,10 @@
 GrWebSDR
+========
 
 GrWebSDR is a web SDR receiver.
 
 Build requirements
+------------------
 On Fedora, you will need the following packages:
 gnuradio-devel
 boost-devel
@@ -10,23 +12,48 @@ libvorbis-devel
 libogg-devel
 libwebsockets-devel
 json-c-devel
+gr-osmosdr-devel
 
 Build instructions
+------------------
 $ cd src/cpp
 $ make
 
 How to run it
+-------------
 $ ./main
+You will be asked to enter some parameters for your tuner. If you don't want
+to fill in the parameters each time you run the server, you can create
+a configuration file (see the file sample_config.json) and run it as
+$ ./main -f <config file>
+
+You will also be asked to enter a new admin user name + password for the web UI.
+
 Now visit http://localhost:8080/ in your browser.
 
+For more options see the output of
+$ ./main -h
+
 Known bugs
+----------
 1. It takes a while for the browser to start playing (initially and when changing
    the demodulation or frequency of the receiver). I believe this is due to
    browser-side buffering of the audio stream.
-2. The SSB and especially CW demodulations are likely to be completely unusable.
-   Their testing was very limited so far.
+2. The CW demodulation is likely to be completely unusable at this moment.
+3. When using a RTL-SDR tuner then sometimes upon loading the web UI, or when
+   changing some receiver parameter, the server hangs, printing 'O' characters
+   to stderr. This is caused by a race condition originating in rtl-sdr and
+   gr-osmosdr. I'm working on the fix.
+
+Contributing
+------------
+GrWebSDR was created as part of my bachelor thesis, which has not yet been
+defended, and also it's not yet ready for submission. So please hold any
+patches you might have, until I have turned in my work (preliminarily May 2017).
+I'll be happy to accept patches after that.
 
 License
+-------
 Copyright (C) 2017 Ondřej Lysoněk
 
 This program is free software: you can redistribute it and/or modify
