@@ -2,6 +2,9 @@
 <html>
 <head>
 <style>
+html * {
+	font-family: sans-serif;
+}
 .modal {
 	display: none; position: fixed; z-index: 1;
 	left: 0; top: 0; width: 100%; height: 100%; overflow: auto;
@@ -12,20 +15,40 @@
 	background-color: #ffffff; text-align: center
 }
 .fieldset {
-	background-color: linen
+	background-color: lightgrey;
+	border-radius: 4%;
+}
+.legend {
+	font-weight: bold;
+	border: 2px groove;
+	background-color: lightgrey;
+	border-radius: 10%;
+	padding: 2px 4px 2px 4px;
+}
+.src_params {
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+}
+.form_rec {
+	width: 230px;
 }
 </style>
 </head>
 <body style="background-color: azure">
 <script src="ui.js"></script>
 
+<h1 style="float: left; margin-top: 16px">GrWebSDR</h1>
+
+<div style="float: right; margin-right: 20px; margin-top: 12px">
 <button type="button" id="btn_show_login" onclick="show_login(true)">
 Login
 </button>
 <button type="button" id="btn_logout" style="display: none" onclick="logout()">
 Logout
 </button>
-<br>
+</div>
+
+<div style="clear: both"></div>
 
 <div id="login_modal" class="modal">
 <div class="modal_content">
@@ -40,21 +63,21 @@ Logout
 </div>
 </div>
 
-<div style="float: left; max-width: 48%; margin-top: 20px">
+<div style="float: left; max-width: 48%; margin-top: auto">
 <fieldset class="fieldset">
-<legend>Source</legend>
+<legend class="legend">Source</legend>
 <select onchange="send_source(this.value)" id="select_source">
 </select><br>
-<label id="source_description"></label><br>
-<label id="converter_offset"></label><br>
-<label id="sample_rate"></label><br>
-<label id="lbl_center_freq"></label><br>
+<p class="src_params" id="source_description"></p>
+<p class="src_params" id="converter_offset"></p>
+<p class="src_params" id="sample_rate"></p>
+<p class="src_params"  id="lbl_center_freq"></p>
 </fieldset>
 </div>
 
-<div id="div_privileged" style="float: left; position: absolute; left: 52%; display: none; margin-top: 20px">
+<div id="div_privileged" style="float: left; position: absolute; left: 52%; display: none; margin-top: auto">
 <fieldset class="fieldset">
-<legend>Privileged options</legend>
+<legend class="legend">Privileged options</legend>
 <form action="#" onsubmit="send_hw_freq()">
 <input type="text" id="center_freq">
 <input type="submit" value="Change center frequency">
@@ -62,27 +85,29 @@ Logout
 </fieldset>
 </div>
 
-<div style="clear: both; margin-top: 30px; float: left; width: 100%">
+<div style="clear: both; margin-top: 20px; float: left; width: 100%">
 <fieldset class="fieldset">
-<legend>Receiver</legend>
+<legend class="legend">Receiver</legend>
 <label id="lbl_receiver_freq"></label><br>
 
+<div>
 <div style="clear: both; margin-top: 10px">
 <form action="#" onsubmit="change_receiver_freq_txt()">
 	<input type="text" id="txt_receiver_freq" style="margin-right: 5px">
-	<input type="submit" value="Change receiver frequency">
+	<input class="form_rec" type="submit" value="Change receiver frequency">
 </form>
 </div>
 
 <div style="margin-top: 10px">
 <form action="#" onsubmit="change_freq_offset_txt()">
 	<input type="text" id="txt_offset" style="margin-right: 5px">
-	<input type="submit" value="Change receiver offset">
+	<input class="form_rec" type="submit" value="Change receiver offset">
 </form>
+</div>
 </div>
 
 <div style="clear: both; float: left; margin-top: 10px">
-<label for="select_demod">Demodulation: </label>
+<label for="select_demod">Demodulation:</label><br>
 <select onchange="send_demod(this.value)" id="select_demod">
 </select>
 </div>
@@ -106,8 +131,9 @@ Logout
 </div>
 </fieldset>
 </div>
+<div style="clear: both"></div>
 
-<div style="clear: both; float: left; margin-top: 30px">
+<div style="float: left; margin-top: 16px">
 <label id="num_clients"></label>
 </div>
 
