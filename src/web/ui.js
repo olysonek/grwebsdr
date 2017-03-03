@@ -139,9 +139,10 @@ function get_receiver_freq() {
 function update_center_freq() {
 	var freq = get_center_freq();
 	var elem = document.getElementById('lbl_center_freq');
-	var formatted = format_freq(freq);
+	var formatted = format_freq(freq, true);
 	elem.innerHTML = 'Center frequency: ' + formatted;
 
+	formatted = format_freq(freq, false);
 	elem = document.getElementById('center_freq');
 	elem.value = formatted;
 }
@@ -149,15 +150,15 @@ function update_center_freq() {
 function update_receiver_freq() {
 	var freq = get_receiver_freq();
 	var elem = document.getElementById('lbl_receiver_freq');
-	var formatted = format_freq(freq);
+	var formatted = format_freq(freq, true);
 	elem.innerHTML = 'Receiver frequency: ' + formatted;
 
 	elem = document.getElementById('txt_receiver_freq');
-	elem.value = format_freq(freq);
+	elem.value = format_freq(freq, false);
 }
 
 function update_converter_offset(offset) {
-	var formatted = format_freq(offset);
+	var formatted = format_freq(offset, true);
 	var lbl = document.getElementById('converter_offset');
 	lbl.innerHTML = 'Up/down converter offset: ' + formatted;
 	converter_offset = offset;
@@ -201,6 +202,14 @@ function update_sample_rate(value) {
 	elem.max = sample_rate/2;
 
 	elem = document.getElementById('sample_rate');
+	value = value.toString();
+	if (value.length > 6) {
+		value = value.slice(0, -6) + '&nbsp' + value.slice(-6, value.length);
+		value = value.slice(0, -3) + '&nbsp' + value.slice(-3, value.length);
+	} else if (value.lenth > 3) {
+		value = value.slice(0, -3) + '&nbsp' + value.slice(-3, value.length);
+	}
+
 	elem.innerHTML = 'Sample rate: ' + value + ' S/s';
 }
 
@@ -251,14 +260,23 @@ function hide_privileged_ui() {
 	elem.style.display = 'none';
 }
 
-function format_freq(freq) {
-	tmp = Math.abs(freq);
-	if (tmp >= 1000000)
-		return (freq / 1000000.0) + ' MHz';
-	else if (tmp >= 1000)
-		return (freq / 1000.0) + ' kHz';
-	else
-		return freq + ' Hz';
+function format_freq(freq, spaced) {
+	var tmp = Math.abs(freq);
+	var unit = '';
+	if (tmp >= 1000000) {
+		freq = freq / 1000000.0;
+		freq = freq.toFixed(6).toString();
+		if (spaced)
+			    freq = freq.slice(0, -3) + '&nbsp' + freq.slice(-3, freq.length);
+		unit = 'MHz';
+	} else if (tmp >= 1000) {
+		freq = freq / 1000.0;
+		freq = freq.toFixed(3);
+		unit = 'kHz';
+	} else {
+		unit = 'Hz';
+	}
+	return freq + ' ' + unit;
 }
 
 function update_hw_freq(value) {
@@ -359,7 +377,7 @@ function check_freq_offset(offset) {
 function update_freq_offset(offset) {
 	freq_offset = offset;
 	document.getElementById("freq_offset").value = offset;
-	document.getElementById('txt_offset').value = format_freq(offset);
+	document.getElementById('txt_offset').value = format_freq(offset, false);
 	update_receiver_freq();
 }
 

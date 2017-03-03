@@ -16,13 +16,13 @@ html * {
 }
 .fieldset {
 	background-color: lightgrey;
-	border-radius: 4%;
+	border-radius: 10px;
 }
 .legend {
 	font-weight: bold;
 	border: 2px groove;
 	background-color: lightgrey;
-	border-radius: 10%;
+	border-radius: 8px;
 	padding: 2px 4px 2px 4px;
 }
 .src_params {
@@ -75,7 +75,7 @@ Logout
 </fieldset>
 </div>
 
-<div id="div_privileged" style="float: left; position: absolute; left: 52%; display: none; margin-top: auto">
+<div id="div_privileged" style="float: left; position: absolute; left: 51%; display: none; margin-top: auto">
 <fieldset class="fieldset">
 <legend class="legend">Privileged options</legend>
 <form action="#" onsubmit="send_hw_freq()">
@@ -112,26 +112,28 @@ Logout
 </select>
 </div>
 
+<div style="clear: both"></div>
+<div style="text-align: center">
 <input type="range" id="freq_offset" min="-1000000" max="1000000" value="0"
 	step="1" style="border: 1px; width: 98%; margin-top: 10px; margin-bottom: 10px"
 	onchange="send_freq_offset(this.value)"
 	oninput="change_freq_offset_range()"><br>
+</div>
 
-<div style="float: left; width: 49%; text-align: right; margin-right: 10px">
+<div style="text-align: center;">
 <button type="button" onclick="add_to_offset(-100000)">-100 kHz</button>
 <button type="button" onclick="add_to_offset(-10000)">-10 kHz</button>
 <button type="button" onclick="add_to_offset(-1000)">-1 kHz</button>
-<button type="button" onclick="add_to_offset(-100)">-100 Hz</button>
-</div>
-<div style="float: left; width: 49%; text-align: left; margin-left: 10px">
-<button type="button" onclick="add_to_offset(100)">+100 Hz</button>
+<button style="margin-right: 10px" type="button" onclick="add_to_offset(-100)">-100 Hz</button>
+
+<button style="margin-left: 10px" type="button" onclick="add_to_offset(100)">+100 Hz</button>
 <button type="button" onclick="add_to_offset(1000)">+1 kHz</button>
 <button type="button" onclick="add_to_offset(10000)">+10 kHz</button>
 <button type="button" onclick="add_to_offset(100000)">+100 kHz</button>
 </div>
+<div style="clear: both"></div>
 </fieldset>
 </div>
-<div style="clear: both"></div>
 
 <div style="float: left; margin-top: 16px">
 <label id="num_clients"></label>
