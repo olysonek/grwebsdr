@@ -47,8 +47,7 @@ Known bugs
 1. It takes a while for the browser to start playing (initially and when changing
    the demodulation or frequency of the receiver). I believe this is due to
    browser-side buffering of the audio stream.
-2. The CW demodulation is likely to be completely unusable at this moment.
-3. When using a RTL-SDR tuner then sometimes upon loading the web UI, or when
+2. When using a RTL-SDR tuner then sometimes upon loading the web UI, or when
    changing some receiver parameter, the server hangs, printing 'O' characters
    to stderr. This is caused by a race condition originating in rtl-sdr and
    gr-osmosdr. I'm working on the fix.
