@@ -145,9 +145,9 @@ bool receiver::change_demod(string d)
 		taps = firdes::complex_band_pass(1.0, src_rate, -2800, -320, 300, firdes::WIN_KAISER, 2.0);
 		demod = ssb_demod::make(dec_rate, audio_rate, 2500, 1000);
 	} else if (d == "CW") {
-		dec = optimal_decimation(src_rate, 2 * (500 + 500));
+		dec = optimal_decimation(src_rate, 2000);
 		dec_rate = src_rate / dec;
-		taps = firdes::complex_band_pass(1.0, src_rate, 1, 500, 500,
+		taps = firdes::complex_band_pass(1.0, src_rate, 1, 400, 400,
 				firdes::WIN_KAISER, 1.0);
 		demod = am_demod::make(dec_rate, audio_rate, 500, 500);
 	}
