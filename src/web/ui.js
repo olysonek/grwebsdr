@@ -129,7 +129,7 @@ function update_demod_name(demod) {
 }
 
 function get_center_freq() {
-	return hw_freq + converter_offset;
+	return hw_freq - converter_offset;
 }
 
 function get_receiver_freq() {
@@ -234,7 +234,7 @@ function send_hw_freq() {
 		return;
 	}
 	freq = tmp.value;
-	freq -= converter_offset;
+	freq += converter_offset;
 	freq_change_requested = true;
 	ws.send('{"hw_freq":' + freq + '}');
 }
