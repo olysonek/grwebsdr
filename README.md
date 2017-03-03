@@ -52,13 +52,6 @@ Known bugs
    to stderr. This is caused by a race condition originating in rtl-sdr and
    gr-osmosdr. I'm working on the fix.
 
-Contributing
-------------
-GrWebSDR was created as part of my bachelor thesis, which has not yet been
-defended, and also it's not yet ready for submission. So please hold any
-patches you might have, until I have turned in my work (preliminarily May 2017).
-I'll be happy to accept patches after that.
-
 License
 -------
 Copyright (C) 2017 Ondřej Lysoněk
