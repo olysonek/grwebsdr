@@ -13,6 +13,7 @@ On Fedora, you will need the following packages:
 * libwebsockets-devel
 * json-c-devel
 * gr-osmosdr-devel
+* openssl-devel
 
 Build instructions
 ------------------
