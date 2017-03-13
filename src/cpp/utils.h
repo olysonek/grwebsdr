@@ -21,6 +21,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <config.h>
 #include "globals.h"
 #include <vector>
 #include <gnuradio/gr_complex.h>

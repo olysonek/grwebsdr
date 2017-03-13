@@ -21,6 +21,7 @@
 #ifndef WFM_DEMOD_H
 #define WFM_DEMOD_H
 
+#include <config.h>
 #include <boost/shared_ptr.hpp>
 #include <gnuradio/filter/fir_filter_fff.h>
 #include <gnuradio/hier_block2.h>

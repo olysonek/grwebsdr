@@ -18,6 +18,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include "ogg_sink.h"
 #include <gnuradio/io_signature.h>
 #include <stdexcept>

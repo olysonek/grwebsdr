@@ -18,6 +18,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include "utils.h"
 #include <fcntl.h>
 #include <unistd.h>

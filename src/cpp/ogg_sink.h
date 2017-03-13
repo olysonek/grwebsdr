@@ -21,6 +21,7 @@
 #ifndef OGG_SINK_H
 #define OGG_SINK_H
 
+#include <config.h>
 #include <boost/shared_ptr.hpp>
 #include <gnuradio/sync_block.h>
 #include <ogg/ogg.h>

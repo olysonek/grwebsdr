@@ -18,6 +18,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include "receiver.h"
 #include "fm_demod.h"
 #include "am_demod.h"

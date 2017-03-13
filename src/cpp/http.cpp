@@ -18,6 +18,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include "http.h"
 #include "globals.h"
 #include "utils.h"

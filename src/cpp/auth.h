@@ -21,6 +21,7 @@
 #ifndef AUTH_H
 #define AUTH_H
 
+#include <config.h>
 #include <string>
 
 void set_admin_username(std::string user);

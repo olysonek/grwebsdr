@@ -21,6 +21,7 @@
 #ifndef AM_DEMOD_H
 #define AM_DEMOD_H
 
+#include <config.h>
 #include <boost/shared_ptr.hpp>
 #include <gnuradio/hier_block2.h>
 #include <gnuradio/filter/rational_resampler_base_fff.h>

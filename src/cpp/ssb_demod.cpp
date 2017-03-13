@@ -18,6 +18,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include "ssb_demod.h"
 #include <boost/math/common_factor_rt.hpp>
 #include <gnuradio/filter/firdes.h>

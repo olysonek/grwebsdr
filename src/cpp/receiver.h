@@ -21,6 +21,7 @@
 #ifndef RECEIVER_H
 #define RECEIVER_H
 
+#include <config.h>
 #include "ogg_sink.h"
 #include <boost/shared_ptr.hpp>
 #include <gnuradio/top_block.h>

@@ -21,6 +21,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <config.h>
+
 bool process_config(const char *path);
 
 #endif

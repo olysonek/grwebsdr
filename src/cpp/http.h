@@ -21,6 +21,7 @@
 #ifndef HTTP_H
 #define HTTP_H
 
+#include <config.h>
 #include <libwebsockets.h>
 #include <string>
 

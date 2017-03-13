@@ -18,6 +18,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include "auth.h"
 #include "receiver.h"
 #include "globals.h"

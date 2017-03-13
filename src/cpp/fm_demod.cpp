@@ -18,6 +18,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include "fm_demod.h"
 #include "utils.h"
 #include <boost/math/common_factor_rt.hpp>

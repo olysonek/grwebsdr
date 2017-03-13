@@ -18,6 +18,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include "auth.h"
 #include "websocket.h"
 #include "globals.h"

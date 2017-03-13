@@ -21,6 +21,7 @@
 #ifndef SSB_DEMOD_H
 #define SSB_DEMOD_H
 
+#include <config.h>
 #include <boost/shared_ptr.hpp>
 #include <gnuradio/hier_block2.h>
 

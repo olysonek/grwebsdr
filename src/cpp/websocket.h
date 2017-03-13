@@ -21,6 +21,7 @@
 #ifndef WEBSOCKET_H
 #define WEBSOCKET_H
 
+#include <config.h>
 #include "globals.h"
 #include <string>
 #include <libwebsockets.h>
