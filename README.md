@@ -18,20 +18,22 @@ On Fedora, you will need the following packages:
 Build instructions
 ------------------
 ```
-$ cd src/cpp
+$ autoreconf --install
+$ ./configure
 $ make
 ```
 
 How to run it
 -------------
 ```
-$ ./main
+$ cd src/cpp
+$ ./grwebsdr
 ```
 You will be asked to enter some parameters for your tuner. If you don't want
 to fill in the parameters each time you run the server, you can create
 a configuration file (see the file `sample_config.json`) and run it as
 ```
-$ ./main -f <config file>
+$ ./grwebsdr -f <config file>
 ```
 
 You will also be asked to enter a new admin user name + password for the web UI.
@@ -40,7 +42,7 @@ Now visit http://localhost:8080/ in your browser.
 
 For more options see the output of
 ```
-$ ./main -h
+$ ./grwebsdr -h
 ```
 
 Known bugs
