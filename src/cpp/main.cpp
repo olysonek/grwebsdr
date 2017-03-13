@@ -53,6 +53,7 @@ void usage(const char *progname)
 	printf("         -s                     Scan for sources\n");
 	printf("         -f config_file\n");
 	printf("         -p port number\n");
+	printf("         -r resource path (default is ../web)\n");
 }
 
 string get_username()
@@ -155,7 +156,8 @@ int count_pollfds;
 int max_fds;
 struct lws **fd2wsi;
 
-int run(const char *key_path, const char *cert_path, int port)
+int run(const char *key_path, const char *cert_path, int port,
+		const char *resource_path)
 {
 	struct lws_context_creation_info info;
 	int n;
@@ -167,7 +169,7 @@ int run(const char *key_path, const char *cert_path, int port)
 	mount.mount_next = &stream_mount;
 	mount.mountpoint = "/";
 	mount.mountpoint_len = strlen("/");
-	mount.origin = "../web";
+	mount.origin = resource_path;
 	mount.def = "index.html";
 	mount.origin_protocol = LWSMPRO_FILE;
 	stream_mount.mountpoint = "/streams";
@@ -274,10 +276,11 @@ int main(int argc, char **argv)
 {
 	const char *cert_path = nullptr, *key_path = nullptr;
 	const char *config_path = nullptr;
+	const char *resource_path = "../web";
 	int port = 8080;
 	int c;
 
-	while ((c = getopt(argc, argv, "hc:k:sf:p:")) != -1) {
+	while ((c = getopt(argc, argv, "hc:k:sf:p:r:")) != -1) {
 		switch (c) {
 		case 'h':
 			usage(argv[0]);
@@ -301,6 +304,9 @@ int main(int argc, char **argv)
 				usage(argv[0]);
 				return 1;
 			}
+			break;
+		case 'r':
+			resource_path = optarg;
 			break;
 		default:
 			usage(argv[0]);
@@ -331,7 +337,7 @@ int main(int argc, char **argv)
 		src->set_bandwidth(0.0);
 	}
 
-	run(key_path, cert_path, port);
+	run(key_path, cert_path, port, resource_path);
 
 	getchar();
 	topbl->stop();
