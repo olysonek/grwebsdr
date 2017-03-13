@@ -29,11 +29,13 @@ const char *stream_name(const char *url)
 	size_t len;
 	const char *ogg = ".ogg";
 	const size_t ogg_len = strlen(ogg);
+	const char *prefix = "/streams/";
 
-	ret = strrchr(url, '/');
-	if (!ret)
+	if (strncmp(url, prefix, strlen(prefix)))
 		return nullptr;
-	++ret;
+	ret = strrchr(url, '/') + 1;
+	if (url + strlen(prefix) != ret)
+		return nullptr;
 	len = strlen(ret);
 	if (len != STREAM_NAME_LEN)
 		return nullptr;

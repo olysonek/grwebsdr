@@ -25,7 +25,7 @@
 #include <string>
 
 #define HTTP_MAX_PAYLOAD (1 << 14)
-#define MAX_URL_LEN 16
+#define MAX_URL_LEN 32
 
 struct http_user_data {
 	int fd;

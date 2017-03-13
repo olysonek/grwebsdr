@@ -382,7 +382,7 @@ function update_freq_offset(offset) {
 }
 
 function init_audio(stream_name) {
-	audio = new Audio(stream_name);
+	audio = new Audio('streams/' + stream_name);
 	audio.play();
 }
 
