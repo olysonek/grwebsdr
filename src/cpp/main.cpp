@@ -160,6 +160,20 @@ int run(const char *key_path, const char *cert_path, int port)
 	struct lws_context_creation_info info;
 	int n;
 	bool quitting = false;
+	struct lws_http_mount mount, stream_mount;
+
+	memset(&mount, 0, sizeof(mount));
+	memset(&stream_mount, 0, sizeof(mount));
+	mount.mount_next = &stream_mount;
+	mount.mountpoint = "/";
+	mount.mountpoint_len = strlen("/");
+	mount.origin = "../web";
+	mount.def = "index.html";
+	mount.origin_protocol = LWSMPRO_FILE;
+	stream_mount.mountpoint = "/streams";
+	stream_mount.mountpoint_len = strlen("/streams");
+	stream_mount.origin = "http-only";
+	stream_mount.origin_protocol = LWSMPRO_CALLBACK;
 
 	max_fds = getdtablesize();
 	pollfds = (struct lws_pollfd *) malloc(sizeof(*pollfds) * max_fds);
@@ -181,6 +195,7 @@ int run(const char *key_path, const char *cert_path, int port)
 	info.ssl_cert_filepath = cert_path;
 	info.ssl_private_key_filepath = key_path;
 	info.options |= LWS_SERVER_OPTION_REDIRECT_HTTP_TO_HTTPS;
+	info.mounts = &mount;
 
 	ws_context = lws_create_context(&info);
 	if (!ws_context) {
