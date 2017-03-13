@@ -18,7 +18,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
+#include "config_load.h"
 #include "globals.h"
 #include <json-c/json_object.h>
 #include <json-c/json_util.h>

@@ -24,7 +24,7 @@
 #include "utils.h"
 #include "websocket.h"
 #include "http.h"
-#include "config.h"
+#include "config_load.h"
 #include <iostream>
 #include <cstdio>
 #include <cstring>
