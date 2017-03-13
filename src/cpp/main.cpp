@@ -33,6 +33,7 @@
 #include <osmosdr/device.h>
 #include <vector>
 #include <stdexcept>
+#include <termios.h>
 
 using namespace gr;
 using namespace std;
@@ -67,11 +68,26 @@ string get_username()
 string get_password()
 {
 	string ret;
+	struct termios term;
+
 	cout << "Enter new admin password: ";
 	cout.flush();
-	system("/usr/bin/stty -echo");
+	if (tcgetattr(STDIN_FILENO, &term) < 0) {
+		perror("tcgetattr");
+		exit(1);
+	}
+	term.c_lflag &= ~ECHO;
+	if (tcsetattr(STDIN_FILENO, TCSANOW, &term) < 0) {
+		perror("tcsetattr");
+		exit(1);
+	}
 	getline(cin, ret);
-	system("/usr/bin/stty echo");
+	term.c_lflag |= ECHO;
+	if (tcsetattr(STDIN_FILENO, TCSANOW, &term) < 0) {
+		perror("tcsetattr");
+		exit(1);
+	}
+
 	return ret;
 }
 
