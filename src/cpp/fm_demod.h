@@ -18,8 +18,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef WFM_DEMOD_H
-#define WFM_DEMOD_H
+#ifndef FM_DEMOD_H
+#define FM_DEMOD_H
 
 #include <config.h>
 #include <boost/shared_ptr.hpp>
