@@ -31,7 +31,7 @@ using namespace gr;
 using namespace gr::analog;
 using namespace gr::filter;
 
-vector<string> receiver::supported_demods = { "WFM", "FM", "AM", "LSB", "USB", "CW" };
+vector<string> receiver::supported_demods = { "WBFM", "NBFM", "AM", "LSB", "USB", "CW" };
 
 receiver::sptr receiver::make(gr::top_block_sptr top_bl,
 			int fds[2])
@@ -120,12 +120,12 @@ bool receiver::change_demod(string d)
 	offset = xlate == nullptr ? 0
 			: trim_freq_offset(xlate->center_freq(), src_rate);
 	disconnect_all();
-	if (d == "WFM") {
+	if (d == "WBFM") {
 		dec = optimal_decimation(src_rate, 2 * (75000 + 25000));
 		dec_rate = src_rate / dec;
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 75000, 25000));
 		demod = fm_demod::make(dec_rate, audio_rate, 75000, audio_rate / 2, 4000);
-	} else if (d == "FM") {
+	} else if (d == "NBFM") {
 		dec = optimal_decimation(src_rate, 2 * (4000 + 2000));
 		dec_rate = src_rate / dec;
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 4000, 2000));
