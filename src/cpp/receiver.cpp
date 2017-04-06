@@ -25,6 +25,7 @@
 #include "ssb_demod.h"
 #include "utils.h"
 #include <algorithm>
+#include <boost/math/common_factor_rt.hpp>
 
 using namespace std;
 using namespace gr;
@@ -62,7 +63,8 @@ void receiver::connect_blocks()
 {
 	connect(self(), 0, xlate, 0);
 	connect(xlate, 0, demod, 0);
-	connect(demod, 0, sink, 0);
+	connect(demod, 0, resampler, 0);
+	connect(resampler, 0, sink, 0);
 }
 
 int receiver::trim_freq_offset(int offset, int src_rate)
@@ -124,33 +126,69 @@ bool receiver::change_demod(string d)
 		dec = optimal_decimation(src_rate, 2 * (75000 + 25000));
 		dec_rate = src_rate / dec;
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 75000, 25000));
-		demod = fm_demod::make(dec_rate, audio_rate, 75000, audio_rate / 2, 4000);
+		demod = fm_demod::make(dec_rate, 75000);
+
+		int div = boost::math::gcd(dec_rate, audio_rate);
+		int audio_int = audio_rate / div;
+		int audio_dec = dec_rate / div;
+		resampler = rational_resampler_base_fff::make(audio_int, audio_dec,
+				firdes::low_pass(1.0, dec_rate, audio_rate / 2, 4000));
 	} else if (d == "NBFM") {
 		dec = optimal_decimation(src_rate, 2 * (4000 + 2000));
 		dec_rate = src_rate / dec;
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 4000, 2000));
-		demod = fm_demod::make(dec_rate, audio_rate, 4000, 4000, 2000);
+		demod = fm_demod::make(dec_rate, 4000);
+
+		int div = boost::math::gcd(dec_rate, audio_rate);
+		int audio_int = audio_rate / div;
+		int audio_dec = dec_rate / div;
+		resampler = rational_resampler_base_fff::make(audio_int, audio_dec,
+				firdes::low_pass(1.0, dec_rate, 4000, 2000));
 	} else if (d == "AM") {
 		dec = optimal_decimation(src_rate, 2 * (4000 + 2000));
 		dec_rate = src_rate / dec;
 		taps = taps_f2c(firdes::low_pass(1.0, src_rate, 4000, 2000));
-		demod = am_demod::make(dec_rate, audio_rate, 4000, 2000);
+		demod = am_demod::make();
+
+		int div = boost::math::gcd(dec_rate, audio_rate);
+		int audio_int = audio_rate / div;
+		int audio_dec = dec_rate / div;
+		resampler = rational_resampler_base_fff::make(audio_int, audio_dec,
+				firdes::low_pass(1.0, dec_rate, 4000, 2000));
 	} else if (d == "USB") {
 		dec = optimal_decimation(src_rate, 12000);
 		dec_rate = src_rate / dec;
 		taps = firdes::complex_band_pass(1.0, src_rate, 420, 2800, 400, firdes::WIN_KAISER, 2.0);
-		demod = ssb_demod::make(dec_rate, audio_rate, 2500, 1000);
+		demod = ssb_demod::make(dec_rate);
+
+		int div = boost::math::gcd(dec_rate, audio_rate);
+		int audio_int = audio_rate / div;
+		int audio_dec = dec_rate / div;
+		resampler = rational_resampler_base_fff::make(audio_int, audio_dec,
+				firdes::low_pass(1.0, dec_rate, 2500, 1000));
 	} else if (d == "LSB") {
 		dec = optimal_decimation(src_rate, 12000);
 		dec_rate = src_rate / dec;
 		taps = firdes::complex_band_pass(1.0, src_rate, -2800, -420, 400, firdes::WIN_KAISER, 2.0);
-		demod = ssb_demod::make(dec_rate, audio_rate, 2500, 1000);
+		demod = ssb_demod::make(dec_rate);
+
+		int div = boost::math::gcd(dec_rate, audio_rate);
+		int audio_int = audio_rate / div;
+		int audio_dec = dec_rate / div;
+		resampler = rational_resampler_base_fff::make(audio_int, audio_dec,
+				firdes::low_pass(1.0, dec_rate, 2500, 1000));
 	} else if (d == "CW") {
 		dec = optimal_decimation(src_rate, 2000);
 		dec_rate = src_rate / dec;
 		taps = firdes::complex_band_pass(1.0, src_rate, 1, 400, 400,
 				firdes::WIN_KAISER, 1.0);
-		demod = am_demod::make(dec_rate, audio_rate, 500, 500);
+		demod = am_demod::make();
+
+		int div = boost::math::gcd(dec_rate, audio_rate);
+		int audio_int = audio_rate / div;
+		int audio_dec = dec_rate / div;
+		resampler = rational_resampler_base_fff::make(audio_int, audio_dec,
+				firdes::low_pass(1.0, dec_rate, 500, 500));
 	}
 	cur_demod = d;
 	xlate = freq_xlating_fir_filter_ccc::make(dec, taps, offset, src_rate);
