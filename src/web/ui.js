@@ -19,8 +19,11 @@
  */
 
 var hw_freq = null;
+var auto_gain = null;
+var gain = null;
 var privileged = false;
 var freq_change_requested = false;
+var gain_change_requested = false;
 var sample_rate = null;
 var stream_name = null;
 var audio = null;
@@ -63,8 +66,22 @@ function setup_websocket() {
 			update_hw_freq(value);
 			if (!freq_change_requested && changed) {
 				alert('HW frequency changed.');
-				freq_change_requested = false;
 			}
+			freq_change_requested = false;
+		}
+		if (msg.hasOwnProperty('auto_gain') || msg.hasOwnProperty('gain')) {
+			var auto = null;
+			var val = null;
+			if (msg.hasOwnProperty('auto_gain'))
+				auto = msg.auto_gain;
+			if (msg.hasOwnProperty('gain'))
+				val = msg.gain;
+			var changed = is_gain_different(auto, val);
+			update_gain(auto, val);
+			if (!gain_change_requested && changed) {
+				alert('Gain changed.');
+			}
+			gain_change_requested = false;
 		}
 		if (msg.hasOwnProperty('demod')) {
 			update_demod_name(msg.demod);
@@ -75,6 +92,27 @@ function setup_websocket() {
 		update_privileged(msg);
 		update_num_clients(msg);
 	};
+}
+
+function is_gain_different(auto, val) {
+	if (auto != null && auto != auto_gain)
+		return true;
+	if (val != null && gain != null) {
+		if (Math.abs(val - gain) > 0.01)
+			return true;
+	}
+	return false;
+}
+
+function update_gain(auto, val) {
+	auto_gain = auto;
+	gain = val;
+	if (auto_gain != null) {
+		document.getElementById('auto_gain').checked = auto_gain;
+		document.getElementById('gain').disabled = auto_gain;
+	}
+	if (gain != null)
+		document.getElementById('gain').value = gain;
 }
 
 function update_num_clients(msg) {
@@ -178,7 +216,9 @@ function source_changed(source) {
 	if (!source.hasOwnProperty('source_ix')
 			|| !source.hasOwnProperty('sample_rate')
 			|| !source.hasOwnProperty('hw_freq')
-			|| !source.hasOwnProperty('converter_offset')) {
+			|| !source.hasOwnProperty('converter_offset')
+			|| !source.hasOwnProperty('auto_gain')
+			|| !source.hasOwnProperty('gain')) {
 		alert('Error: incomplete source info sent.');
 		return;
 	}
@@ -186,6 +226,7 @@ function source_changed(source) {
 	update_source(source.source_ix);
 	update_hw_freq(source.hw_freq);
 	update_sample_rate(source.sample_rate);
+	update_gain(source.auto_gain, source.gain);
 	if (source.hasOwnProperty('description')) {
 		update_source_description(source.description);
 	}
@@ -246,6 +287,26 @@ function send_hw_freq() {
 	freq += converter_offset;
 	freq_change_requested = true;
 	ws.send('{"hw_freq":' + freq + '}');
+}
+
+function send_gain() {
+	var auto = document.getElementById('auto_gain').checked;
+	if (auto) {
+		gain_change_requested = true;
+		ws.send('{"auto_gain":true}');
+	} else {
+		var val = document.getElementById('gain').value;
+		var tmp = parse_gain(val);
+		if (!tmp.ok) {
+			alert('Bad format');
+			return;
+		}
+		gain_change_requested = true;
+		str = tmp.value.toString();
+		if (str.search("\\.") < 0)
+			str += '.0';
+		ws.send('{"gain":' + str + '}');
+	}
 }
 
 function show_privileged_ui() {
@@ -312,6 +373,17 @@ function parse_freq(str) {
 	if (str.search("^-?[0123456789]+(\\.[0123456789]+)?$") < 0)
 		return ret;
 	ret.value = Math.floor(parseFloat(str) * mult);
+	ret.ok = true;
+	return ret;
+}
+
+function parse_gain(str) {
+	var ret = {};
+	ret.ok = false;
+	str = str.trim();
+	if (str.search("^-?[0123456789]+(\\.[0123456789]+)?$") < 0)
+		return ret;
+	ret.value = parseFloat(str);
 	ret.ok = true;
 	return ret;
 }

@@ -104,6 +104,35 @@ void change_hw_freq(struct json_object *obj, receiver::sptr rec)
 	lws_callback_on_writable_all_protocol(ws_context, &protocols[1]);
 }
 
+void change_gain(struct json_object *obj, receiver::sptr rec)
+{
+	struct json_object *gain_obj, *auto_gain_obj;
+	double gain;
+	bool auto_gain;
+	bool gain_set = false;
+
+	if (!rec->get_privileged() || rec->get_source() == nullptr)
+		return;
+
+	if (json_object_object_get_ex(obj, "auto_gain", &auto_gain_obj)) {
+		if (json_object_get_type(auto_gain_obj) == json_type_boolean) {
+			auto_gain = json_object_get_boolean(auto_gain_obj);
+			rec->get_source()->set_gain_mode(auto_gain);
+			gain_set = true;
+		}
+	}
+	if (json_object_object_get_ex(obj, "gain", &gain_obj)) {
+		if (json_object_get_type(gain_obj) == json_type_double) {
+			gain = json_object_get_double(gain_obj);
+			rec->get_source()->set_gain_mode(false);
+			rec->get_source()->set_gain(gain);
+			gain_set = true;
+		}
+	}
+	if (gain_set)
+		lws_callback_on_writable_all_protocol(ws_context, &protocols[1]);
+}
+
 void change_demod(struct json_object *obj, receiver::sptr rec,
 		struct websocket_user_data *data)
 {
@@ -165,6 +194,20 @@ void attach_hw_freq(struct json_object *obj, receiver::sptr rec)
 		return;
 	val_obj = json_object_new_int(src->get_center_freq());
 	json_object_object_add(obj, "hw_freq", val_obj);
+}
+
+void attach_gain(struct json_object *obj, receiver::sptr rec)
+{
+	struct json_object *val_obj;
+	osmosdr::source::sptr src;
+
+	src = rec->get_source();
+	if (src == nullptr)
+		return;
+	val_obj = json_object_new_boolean(src->get_gain_mode());
+	json_object_object_add(obj, "auto_gain", val_obj);
+	val_obj = json_object_new_double(src->get_gain());
+	json_object_object_add(obj, "gain", val_obj);
 }
 
 void attach_freq_offset(struct json_object *obj, receiver::sptr rec)
@@ -237,6 +280,7 @@ void attach_source_info(struct json_object *obj, receiver::sptr rec)
 	attach_hw_freq(tmp, rec);
 	attach_sample_rate(tmp, rec);
 	attach_converter_offset(tmp, rec);
+	attach_gain(tmp, rec);
 	json_object_object_add(obj, "current_source", tmp);
 }
 
@@ -339,6 +383,10 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 		rec = iter->second;
 
 		reply = json_object_new_object();
+		if (data->initialized && !data->source_changed) {
+			attach_hw_freq(reply, rec);
+			attach_gain(reply, rec);
+		}
 		if (!data->initialized) {
 			attach_init_data(reply, data);
 			data->initialized = true;
@@ -358,8 +406,6 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 		if (data->source_changed) {
 			attach_source_info(reply, rec);
 			data->source_changed = false;
-		} else {
-			attach_hw_freq(reply, rec);
 		}
 		attach_num_clients(reply);
 		strcpy(buf, json_object_get_string(reply));
@@ -386,6 +432,7 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 
 		change_freq_offset(obj, rec, data);
 		change_hw_freq(obj, rec);
+		change_gain(obj, rec);
 		change_demod(obj, rec, data);
 		change_source(obj, rec, data);
 		process_authentication(obj, rec, data);

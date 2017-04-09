@@ -32,6 +32,9 @@ html * {
 .form_rec {
 	width: 230px;
 }
+.form_priv_but {
+	width: 230px;
+}
 </style>
 </head>
 <body style="background-color: azure">
@@ -79,8 +82,18 @@ Logout
 <fieldset class="fieldset">
 <legend class="legend">Privileged options</legend>
 <form action="#" onsubmit="send_hw_freq()">
+<p class="src_params">
 <input type="text" id="center_freq">
-<input type="submit" value="Change center frequency">
+<input class="form_priv_but" type="submit" value="Change center frequency">
+</p>
+</form>
+<form action="#" onsubmit="send_gain()">
+<p class="src_params">
+<input type="checkbox" id="auto_gain" onchange="document.getElementById('gain').disabled = this.checked"> Auto RF gain<br>
+<label for="gain">RF gain:</label><br>
+<input type="text" id="gain">
+<input class="form_priv_but" type="submit" value="Set RF gain">
+</p>
 </form>
 </fieldset>
 </div>
