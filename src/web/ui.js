@@ -110,9 +110,13 @@ function update_gain(auto, val) {
 	if (auto_gain != null) {
 		document.getElementById('auto_gain').checked = auto_gain;
 		document.getElementById('gain').disabled = auto_gain;
+		document.getElementById('lbl_auto_gain').innerHTML = 'AGC: ' + auto_gain;
+		document.getElementById('lbl_gain').style.display = auto_gain ? 'none' : 'inline';
 	}
-	if (gain != null)
+	if (gain != null) {
 		document.getElementById('gain').value = gain;
+		document.getElementById('lbl_gain').innerHTML = 'Gain: ' + gain;
+	}
 }
 
 function update_num_clients(msg) {
