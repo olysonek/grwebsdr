@@ -14,6 +14,7 @@ On Fedora, you will need the following packages:
 * json-c-devel
 * gr-osmosdr-devel
 * openssl-devel
+* sqlite-devel (version 3)
 
 Build instructions
 ------------------
@@ -44,6 +45,28 @@ For more options see the output of
 ```
 $ ./grwebsdr -h
 ```
+
+Creating a user database
+------------------------
+If you don't want to type in the admin credentials each time you run GrWebSDR,
+or if you want to have more than one privileged user, you can create a user
+database. GrWebSDR uses sqlite3 as the database backend.
+
+To create a new user database and add a new user 'admin' with password 'secret',
+do the following:
+```
+$ sqlite3 users.db
+SQLite version 3.14.2 2016-09-12 18:50:49
+Enter ".help" for usage hints.
+sqlite> CREATE TABLE users(user VARCHAR, pass);
+sqlite> INSERT INTO users VALUES ('admin', 'secret');
+sqlite> .quit
+```
+
+You can now pass the created database file to GrWebSDR using the '-d' option.
+
+Managing the database through GrWebSDR itself is planned, but not yet
+implemented.
 
 Known bugs
 ----------
