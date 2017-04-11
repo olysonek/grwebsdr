@@ -26,6 +26,9 @@
 
 void set_admin_username(std::string user);
 void set_admin_password(std::string pass);
+bool set_user_db(const char *path);
 bool authenticate(std::string user, std::string pass);
+/** Release any resources associated with the authentication module */
+void auth_finalize(void);
 
 #endif

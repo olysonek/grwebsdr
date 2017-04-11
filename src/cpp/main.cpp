@@ -55,6 +55,7 @@ void usage(const char *progname)
 	printf("         -f config_file\n");
 	printf("         -p port number\n");
 	printf("         -r resource path (default is ../web)\n");
+	printf("         -d path to user database\n");
 }
 
 string get_username()
@@ -278,10 +279,11 @@ int main(int argc, char **argv)
 	const char *cert_path = nullptr, *key_path = nullptr;
 	const char *config_path = nullptr;
 	const char *resource_path = "../web";
+	const char *user_db = nullptr;
 	int port = 8080;
 	int c;
 
-	while ((c = getopt(argc, argv, "hc:k:sf:p:r:")) != -1) {
+	while ((c = getopt(argc, argv, "hc:k:sf:p:r:d:")) != -1) {
 		switch (c) {
 		case 'h':
 			usage(argv[0]);
@@ -309,6 +311,9 @@ int main(int argc, char **argv)
 		case 'r':
 			resource_path = optarg;
 			break;
+		case 'd':
+			user_db = optarg;
+			break;
 		default:
 			usage(argv[0]);
 			return 1;
@@ -327,8 +332,13 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	set_admin_username(get_username());
-	set_admin_password(get_password());
+	if (user_db == nullptr) {
+		set_admin_username(get_username());
+		set_admin_password(get_password());
+	} else {
+		if (!set_user_db(user_db))
+			return 1;
+	}
 
 	topbl = make_top_block("top_block");
 
@@ -343,6 +353,8 @@ int main(int argc, char **argv)
 	getchar();
 	topbl->stop();
 	topbl->wait();
+
+	auth_finalize();
 
 	return 0;
 }
