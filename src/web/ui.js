@@ -115,7 +115,7 @@ function update_gain(auto, val) {
 	}
 	if (gain != null) {
 		document.getElementById('gain').value = gain;
-		document.getElementById('lbl_gain').innerHTML = 'Gain: ' + gain;
+		document.getElementById('lbl_gain').innerHTML = 'Gain: ' + gain + ' dB';
 	}
 }
 
