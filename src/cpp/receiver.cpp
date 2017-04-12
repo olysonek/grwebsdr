@@ -159,7 +159,7 @@ bool receiver::change_demod(string d)
 		dec = optimal_decimation(src_rate, 12000);
 		dec_rate = src_rate / dec;
 		taps = firdes::complex_band_pass(1.0, src_rate, 420, 2800, 400, firdes::WIN_KAISER, 2.0);
-		demod = ssb_demod::make(dec_rate);
+		demod = ssb_demod::make(dec_rate, 0.1);
 
 		int div = boost::math::gcd(dec_rate, audio_rate);
 		int audio_int = audio_rate / div;
@@ -170,7 +170,7 @@ bool receiver::change_demod(string d)
 		dec = optimal_decimation(src_rate, 12000);
 		dec_rate = src_rate / dec;
 		taps = firdes::complex_band_pass(1.0, src_rate, -2800, -420, 400, firdes::WIN_KAISER, 2.0);
-		demod = ssb_demod::make(dec_rate);
+		demod = ssb_demod::make(dec_rate, 0.1);
 
 		int div = boost::math::gcd(dec_rate, audio_rate);
 		int audio_int = audio_rate / div;
@@ -178,11 +178,11 @@ bool receiver::change_demod(string d)
 		resampler = rational_resampler_base_fff::make(audio_int, audio_dec,
 				firdes::low_pass(1.0, dec_rate, 2500, 1000));
 	} else if (d == "CW") {
-		dec = optimal_decimation(src_rate, 2000);
+		dec = optimal_decimation(src_rate, 1000);
 		dec_rate = src_rate / dec;
 		taps = firdes::complex_band_pass(1.0, src_rate, 1, 400, 400,
 				firdes::WIN_KAISER, 1.0);
-		demod = am_demod::make();
+		demod = ssb_demod::make(dec_rate, 0.05);
 
 		int div = boost::math::gcd(dec_rate, audio_rate);
 		int audio_int = audio_rate / div;

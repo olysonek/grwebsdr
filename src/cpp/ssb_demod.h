@@ -28,10 +28,10 @@
 class ssb_demod : public gr::hier_block2 {
 public:
 	typedef boost::shared_ptr<ssb_demod> sptr;
-	static sptr make(int in_rate);
+	static sptr make(int in_rate, double carrier_amplitude);
 	~ssb_demod();
 private:
-	ssb_demod(int in_rate);
+	ssb_demod(int in_rate, double carrier_amplitude);
 };
 
 #endif

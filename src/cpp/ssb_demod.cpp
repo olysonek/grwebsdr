@@ -33,12 +33,12 @@ using namespace gr::analog;
 using namespace gr::blocks;
 using namespace gr::filter;
 
-ssb_demod::sptr ssb_demod::make(int in_rate)
+ssb_demod::sptr ssb_demod::make(int in_rate, double carrier_amplitude)
 {
-	return boost::shared_ptr<ssb_demod>(new ssb_demod(in_rate));
+	return boost::shared_ptr<ssb_demod>(new ssb_demod(in_rate, carrier_amplitude));
 }
 
-ssb_demod::ssb_demod(int in_rate)
+ssb_demod::ssb_demod(int in_rate, double carrier_amplitude)
 	: hier_block2("ssb_demod", io_signature::make(1, 1, sizeof(gr_complex)),
 			io_signature::make(1, 1, sizeof(float)))
 {
@@ -49,8 +49,8 @@ ssb_demod::ssb_demod(int in_rate)
 	complex_to_mag::sptr mag;
 	multiply_const_ff::sptr mult;
 
-	agc = agc_cc::make(0.01f, 0.05f);
-	carrier = sig_source_c::make(in_rate, GR_SIN_WAVE, 0, 0.15);
+	agc = agc_cc::make(0.01f, 0.03f);
+	carrier = sig_source_c::make(in_rate, GR_SIN_WAVE, 0, carrier_amplitude);
 	add = add_cc::make();
 	add2 = add_cc::make();
 	conj = conjugate_cc::make();
