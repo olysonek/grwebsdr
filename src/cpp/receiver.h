@@ -29,6 +29,7 @@
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/freq_xlating_fir_filter_ccc.h>
 #include <gnuradio/filter/rational_resampler_base_fff.h>
+#include <gnuradio/filter/fir_filter_fff.h>
 #include <gnuradio/hier_block2.h>
 #include <osmosdr/source.h>
 #include <cstdio>
@@ -65,6 +66,7 @@ private:
 	gr::top_block_sptr top_bl;
 	gr::filter::freq_xlating_fir_filter_ccc::sptr xlate;
 	gr::basic_block_sptr demod;
+	gr::filter::fir_filter_fff::sptr low_pass = nullptr;
 	gr::filter::rational_resampler_base_fff::sptr resampler;
 	ogg_sink::sptr sink;
 	int fds[2];

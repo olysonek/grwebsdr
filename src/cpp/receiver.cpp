@@ -63,7 +63,12 @@ void receiver::connect_blocks()
 {
 	connect(self(), 0, xlate, 0);
 	connect(xlate, 0, demod, 0);
-	connect(demod, 0, resampler, 0);
+	if (low_pass != nullptr) {
+		connect(demod, 0, low_pass, 0);
+		connect(low_pass, 0, resampler, 0);
+	} else {
+		connect(demod, 0, resampler, 0);
+	}
 	connect(resampler, 0, sink, 0);
 }
 
@@ -122,6 +127,7 @@ bool receiver::change_demod(string d)
 	offset = xlate == nullptr ? 0
 			: trim_freq_offset(xlate->center_freq(), src_rate);
 	disconnect_all();
+	low_pass = nullptr;
 	if (d == "WBFM") {
 		dec = optimal_decimation(src_rate, 2 * (75000 + 25000));
 		dec_rate = src_rate / dec;
@@ -133,6 +139,7 @@ bool receiver::change_demod(string d)
 		int audio_dec = dec_rate / div;
 		resampler = rational_resampler_base_fff::make(audio_int, audio_dec,
 				firdes::low_pass(1.0, dec_rate, audio_rate / 2, 4000));
+		low_pass = fir_filter_fff::make(1, firdes::low_pass(1.0, dec_rate, audio_rate / 2, 4000));
 	} else if (d == "NBFM") {
 		dec = optimal_decimation(src_rate, 2 * (4000 + 2000));
 		dec_rate = src_rate / dec;
