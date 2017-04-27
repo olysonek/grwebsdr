@@ -132,10 +132,13 @@ bool process_config(const char *path)
 
 	printf("Processing config file %s.\n", path);
 	obj = json_object_from_file(path);
-	if (obj == nullptr)
+	if (obj == nullptr) {
+		fprintf(stderr, "Failed to process config file.\n");
 		return false;
+	}
 	if (!json_object_object_get_ex(obj, "sources", &sources)
 			|| json_object_get_type(sources) != json_type_array) {
+		fprintf(stderr, "Failed to process config file.\n");
 		ret = false;
 		goto out;
 	}

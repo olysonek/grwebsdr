@@ -214,7 +214,7 @@ int send_audio(struct lws *wsi, struct http_user_data *data)
 	}
 	res = lws_write(wsi, buffer + LWS_PRE, res, LWS_WRITE_HTTP);
 	if (res < 0) {
-		puts("lws_write failed");
+		fprintf(stderr, "lws_write failed\n");
 		return -1;
 	}
 	lws_set_timeout(wsi, PENDING_TIMEOUT_HTTP_CONTENT, 5);

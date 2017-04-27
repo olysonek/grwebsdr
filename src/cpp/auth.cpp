@@ -25,10 +25,10 @@
 
 using namespace std;
 
-string username;
-string password;
-sqlite3 *db;
-sqlite3_stmt *stmt;
+static string username;
+static string password;
+static sqlite3 *db;
+static sqlite3_stmt *stmt;
 
 void set_admin_username(std::string user)
 {

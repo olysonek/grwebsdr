@@ -182,7 +182,7 @@ int run(const char *key_path, const char *cert_path, int port,
 	fd_lookup = (int *) malloc(sizeof(*fd_lookup) * max_fds);
 	fd2wsi = (struct lws **) calloc(max_fds, sizeof(*fd2wsi));
 	if (!pollfds || !fd_lookup || !fd2wsi) {
-		puts("malloc failed");
+		fprintf(stderr, "malloc failed\n");
 		return -1;
 	}
 	add_pollfd(STDIN_FILENO, POLLIN);
@@ -346,7 +346,8 @@ int main(int argc, char **argv)
 		src->set_bandwidth(0.0);
 	}
 
-	run(key_path, cert_path, port, resource_path);
+	if (run(key_path, cert_path, port, resource_path) != 0)
+		return 1;
 
 	getchar();
 	topbl->stop();
