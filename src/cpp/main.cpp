@@ -45,6 +45,13 @@ unordered_map<string, receiver::sptr> receiver_map;
 
 top_block_sptr topbl;
 
+struct lws_context *ws_context;
+struct lws_pollfd *pollfds;
+int *fd_lookup;
+int count_pollfds;
+int max_fds;
+struct lws **fd2wsi;
+
 void usage(const char *progname)
 {
 	printf("Usage: %s [options]\n\n", progname);
@@ -148,13 +155,6 @@ const struct lws_protocols protocols[] = {
 		WEBSOCKET_MAX_PAYLOAD, 0, nullptr},
 	{ nullptr, nullptr, 0, 0, 0, nullptr}
 };
-
-struct lws_context *ws_context;
-struct lws_pollfd *pollfds;
-int *fd_lookup;
-int count_pollfds;
-int max_fds;
-struct lws **fd2wsi;
 
 int run(const char *key_path, const char *cert_path, int port,
 		const char *resource_path)
