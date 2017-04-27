@@ -107,40 +107,38 @@ bool should_use_source(string name)
 	return answer == "y";
 }
 
-int ask_freq_converter_offset()
+int read_int(string prompt)
 {
-	int ret;
+	int ret = 0;
 	string line;
 
-	cout << "Enter up/down converter offset for the device: ";
-	cout.flush();
-	getline(cin, line);
-	ret = stoi(line);
+	while (1) {
+		try {
+			cout << prompt;
+			cout.flush();
+			getline(cin, line);
+			ret = stoi(line);
+			break;
+		} catch (invalid_argument& e) {
+			cout << "Bad format. Enter an integer." << endl;
+		}
+	}
 	return ret;
+}
+
+int ask_freq_converter_offset()
+{
+	return read_int("Enter up/down converter offset for the device: ");
 }
 
 int ask_hw_freq()
 {
-	int ret;
-	string line;
-
-	cout << "Enter initial HW frequency: ";
-	cout.flush();
-	getline(cin, line);
-	ret = stoi(line);
-	return ret;
+	return read_int("Enter initial HW frequency: ");
 }
 
 int ask_sample_rate()
 {
-	int ret;
-	string line;
-
-	cout << "Enter sample rate: ";
-	cout.flush();
-	getline(cin, line);
-	ret = stoi(line);
-	return ret;
+	return read_int("Enter sample rate: ");
 }
 
 const struct lws_protocols protocols[] = {
