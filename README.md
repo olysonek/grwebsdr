@@ -5,7 +5,7 @@ GrWebSDR is a web SDR receiver.
 
 Build requirements
 ------------------
-On Fedora, you will need the following packages:
+On Fedora (tested on F25), you will need the following packages:
 * gnuradio-devel
 * boost-devel
 * libvorbis-devel
