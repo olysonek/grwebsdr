@@ -55,14 +55,14 @@ struct lws **fd2wsi;
 void usage(const char *progname)
 {
 	printf("Usage: %s [options]\n\n", progname);
-	printf("Options: -h                     Print help\n");
-	printf("         -c certificate_file\n");
-	printf("         -k private_key_file\n");
-	printf("         -s                     Scan for sources\n");
-	printf("         -f config_file\n");
-	printf("         -p port number\n");
-	printf("         -r resource path (default is ../web)\n");
-	printf("         -d path to user database\n");
+	printf("Options: -h                      Print this usage information\n");
+	printf("         -c <certificate_file>   Path to TLS certificate\n");
+	printf("         -k <private_key_file>   Path to private key for TLS\n");
+	printf("         -s                      Scan for signal sources\n");
+	printf("         -f <config_file>        Path to configuration file\n");
+	printf("         -p <port_number>        Port number for HTTP and WebSocket server\n");
+	printf("         -r <resource_path>      Path to WWW files (default is ../web)\n");
+	printf("         -d <user_database>      Path to user DB file\n");
 }
 
 string get_username()
