@@ -22,7 +22,7 @@
 #include "utils.h"
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdio.h>
+#include <cstdio>
 
 using namespace std;
 

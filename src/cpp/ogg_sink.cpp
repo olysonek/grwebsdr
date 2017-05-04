@@ -20,9 +20,9 @@
 
 #include <config.h>
 #include "ogg_sink.h"
+#include <cstdio>
 #include <gnuradio/io_signature.h>
 #include <stdexcept>
-#include <cstdio>
 
 using namespace std;
 
@@ -56,11 +56,6 @@ ogg_sink::ogg_sink(int outfd, int n_channels, unsigned int sample_rate)
 	print_page();
 
 	vorbis_block_init(&vs, &vb);
-}
-
-ogg_sink::~ogg_sink()
-{
-	puts("ogg_sink destructor called");
 }
 
 int ogg_sink::work(int noutput_items, gr_vector_const_void_star &input_items,

@@ -32,7 +32,6 @@ class ogg_sink : virtual public gr::sync_block {
 public:
 	typedef boost::shared_ptr<ogg_sink> sptr;
 	static sptr make(int outfd, int n_channels, unsigned int sample_rate);
-	~ogg_sink();
 	int work(int noutpuut_items, gr_vector_const_void_star &input_items,
 			gr_vector_void_star &output_items);
 private:

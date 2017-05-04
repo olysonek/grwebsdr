@@ -27,7 +27,6 @@
 #include "http.h"
 #include "config_load.h"
 #include <iostream>
-#include <cstdio>
 #include <cstring>
 #include <unordered_map>
 #include <cstdlib>
@@ -54,15 +53,15 @@ struct lws **fd2wsi;
 
 void usage(const char *progname)
 {
-	printf("Usage: %s [options]\n\n", progname);
-	printf("Options: -h                      Print this usage information\n");
-	printf("         -c <certificate_file>   Path to TLS certificate\n");
-	printf("         -k <private_key_file>   Path to private key for TLS\n");
-	printf("         -s                      Scan for signal sources\n");
-	printf("         -f <config_file>        Path to configuration file\n");
-	printf("         -p <port_number>        Port number for HTTP and WebSocket server\n");
-	printf("         -r <resource_path>      Path to WWW files (default is ../web)\n");
-	printf("         -d <user_database>      Path to user DB file\n");
+	cout << "Usage: " << progname << " [options]" << endl << endl;
+	cout << "Options: -h                      Print this usage information" << endl;
+	cout << "         -c <certificate_file>   Path to TLS certificate" << endl;
+	cout << "         -k <private_key_file>   Path to private key for TLS" << endl;
+	cout << "         -s                      Scan for signal sources" << endl;
+	cout << "         -f <config_file>        Path to configuration file" << endl;
+	cout << "         -p <port_number>        Port number for HTTP and WebSocket server" << endl;
+	cout << "         -r <resource_path>      Path to WWW files (default is ../web)" << endl;
+	cout << "         -d <user_database>      Path to user DB file" << endl;
 }
 
 string get_username()
@@ -182,7 +181,7 @@ int run(const char *key_path, const char *cert_path, int port,
 	fd_lookup = (int *) malloc(sizeof(*fd_lookup) * max_fds);
 	fd2wsi = (struct lws **) calloc(max_fds, sizeof(*fd2wsi));
 	if (!pollfds || !fd_lookup || !fd2wsi) {
-		fprintf(stderr, "malloc failed\n");
+		cerr << "malloc() failed" << endl;
 		return -1;
 	}
 	add_pollfd(STDIN_FILENO, POLLIN);
@@ -201,10 +200,10 @@ int run(const char *key_path, const char *cert_path, int port,
 
 	ws_context = lws_create_context(&info);
 	if (!ws_context) {
-		fprintf(stderr, "Failed to create Websocket context.\n");
+		cerr << "Failed to create Websocket context." << endl;
 		return -1;
 	}
-	puts("Starting the server. Press enter to quit.");
+	cout << "Starting the server. Press enter to quit." << endl;
 
 	while (!quitting) {
 		n = poll(pollfds, count_pollfds, 50);
@@ -226,7 +225,7 @@ int run(const char *key_path, const char *cert_path, int port,
 		}
 	}
 
-	puts("Stopping the server.");
+	cout << "Stopping the server." << endl;
 	lws_context_destroy(ws_context);
 	return 0;
 }

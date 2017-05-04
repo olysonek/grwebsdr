@@ -20,8 +20,8 @@
 
 #include <config.h>
 #include "auth.h"
+#include <iostream>
 #include <sqlite3.h>
-#include <stdio.h>
 
 using namespace std;
 
@@ -51,14 +51,14 @@ void auth_finalize()
 bool set_user_db(const char *path)
 {
 	if (sqlite3_open_v2(path, &db, SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK) {
-		fprintf(stderr, "Failed to open user database.\n");
+		cerr << "Failed to open user database." << endl;
 		auth_finalize();
 		return false;
 	}
 	if (sqlite3_prepare_v2(db,
 			"SELECT COUNT(*) FROM users WHERE user=?1 AND pass=?2",
 			-1, &stmt, nullptr) != SQLITE_OK) {
-		fprintf(stderr, "Failed to prepare SQL statement.\n");
+		cerr << "Failed to prepare SQL statement." << endl;
 		auth_finalize();
 		return false;
 	}
@@ -74,16 +74,16 @@ bool authenticate(string user, string pass)
 		bool ret = false;
 		if (sqlite3_bind_text(stmt, 1, user.c_str(), -1, SQLITE_STATIC)
 				!= SQLITE_OK) {
-			fprintf(stderr, "Failed to bind user to SQL statement\n");
+			cerr << "Failed to bind user to SQL statement." << endl;
 			goto reset;
 		}
 		if (sqlite3_bind_text(stmt, 2, pass.c_str(), -1, SQLITE_STATIC)
 				!= SQLITE_OK) {
-			fprintf(stderr, "Failed to bind password to SQL statement\n");
+			cerr << "Failed to bind password to SQL statement." << endl;
 			goto reset;
 		}
 		if (sqlite3_step(stmt) != SQLITE_ROW) {
-			fprintf(stderr, "Failed to execute SQL statement\n");
+			cerr << "Failed to execute SQL statement." << endl;
 			goto reset;
 		}
 

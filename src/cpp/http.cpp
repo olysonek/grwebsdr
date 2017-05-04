@@ -22,7 +22,11 @@
 #include "http.h"
 #include "globals.h"
 #include "utils.h"
-#include <string.h>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+
+using namespace std;
 
 const char *stream_name(const char *url)
 {
@@ -49,7 +53,7 @@ const char *stream_name(const char *url)
 int add_pollfd(int fd, short events)
 {
 	if (count_pollfds >= max_fds) {
-		puts("Too many fds.");
+		cerr << "Too many fds." << endl;
 		return 1;
 	}
 	fd_lookup[fd] = count_pollfds;
@@ -149,8 +153,8 @@ int init_http_session(struct lws *wsi, void *user, void *in, size_t len)
 	(void) user;
 	(void) len;
 
-	puts("Received LWS_CALLBACK_HTTP");
-	printf("URL requested: %s\n", (char *) in);
+	cout << "Received LWS_CALLBACK_HTTP" << endl;
+	cout << "URL requested: " << in << endl;
 
 	if (len > MAX_URL_LEN) {
 		lws_return_http_status(wsi, HTTP_STATUS_NOT_FOUND, nullptr);
@@ -179,7 +183,7 @@ void end_http_session(struct http_user_data *data)
 	stream = stream_name(data->url);
 	if (!stream)
 		return;
-	printf("Closing stream %s\n", stream);
+	cout << "Closing stream " << stream << endl;
 	if (data->fd >= 0) {
 		delete_pollfd(data->fd);
 		fd2wsi[data->fd] = nullptr;
@@ -214,7 +218,7 @@ int send_audio(struct lws *wsi, struct http_user_data *data)
 	}
 	res = lws_write(wsi, buffer + LWS_PRE, res, LWS_WRITE_HTTP);
 	if (res < 0) {
-		fprintf(stderr, "lws_write failed\n");
+		cerr << "lws_write() failed." << endl;
 		return -1;
 	}
 	lws_set_timeout(wsi, PENDING_TIMEOUT_HTTP_CONTENT, 5);

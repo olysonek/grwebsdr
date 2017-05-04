@@ -25,7 +25,8 @@
 #include "utils.h"
 #include "receiver.h"
 #include <atomic>
-#include <string.h>
+#include <iostream>
+#include <cstring>
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -330,7 +331,7 @@ int init_websocket()
 {
 	tok = json_tokener_new();
 	if (!tok) {
-		fprintf(stderr, "json_tokener_new failed\n");
+		cerr << "json_tokener_new() failed." << endl;
 		return -1;
 	}
 	return 0;
@@ -425,7 +426,7 @@ int websocket_cb(struct lws *wsi, enum lws_callback_reasons reason,
 
 		obj = json_tokener_parse_ex(tok, (char *) in, len);
 		if (!obj) {
-			puts("json parsing failed");
+			cerr << "json parsing failed." << endl;
 			break;
 		}
 		json_tokener_reset(tok);

@@ -25,8 +25,7 @@
 #include <json-c/json_util.h>
 #include <json-c/linkhash.h>
 #include <string>
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
 
 using namespace std;
 
@@ -79,8 +78,9 @@ bool add_source(struct json_object *obj)
 				goto bad_format;
 			auto_gain = json_object_get_boolean(tmp);
 			if (got_gain && auto_gain) {
-				puts("Error: Setting automatic gain and"
-						"gain value at the same time.");
+				cerr << "Error: Setting automatic gain and"
+						"gain value at the same time."
+						<< endl;
 				return false;
 			}
 			got_gain = true;
@@ -89,15 +89,16 @@ bool add_source(struct json_object *obj)
 				goto bad_format;
 			gain = json_object_get_double(tmp);
 			if (got_gain && auto_gain) {
-				puts("Error: Setting automatic gain and"
-						"gain value at the same time.");
+				cerr << "Error: Setting automatic gain and"
+						"gain value at the same time."
+						<< endl;
 				return false;
 			}
 			auto_gain = false;
 			got_gain = true;
 		} else {
-			printf("Unknown source parameter in config file: %s\n",
-					key);
+			cerr << "Unknown source parameter in config file: "
+					<< key << endl;
 			return false;
 		}
 	}
@@ -120,7 +121,7 @@ bool add_source(struct json_object *obj)
 	sources_info.push_back(info);
 	return true;
 bad_format:
-	puts("Bad format of config file.");
+	cerr << "Bad format of config file." << endl;
 	return false;
 }
 
@@ -130,15 +131,15 @@ bool process_config(const char *path)
 	int i, len;
 	bool ret = true;
 
-	printf("Processing config file %s.\n", path);
+	cout << "Processing config file " << path << endl;
 	obj = json_object_from_file(path);
 	if (obj == nullptr) {
-		fprintf(stderr, "Failed to process config file.\n");
+		cerr << "Failed to process config file." << endl;
 		return false;
 	}
 	if (!json_object_object_get_ex(obj, "sources", &sources)
 			|| json_object_get_type(sources) != json_type_array) {
-		fprintf(stderr, "Failed to process config file.\n");
+		cerr << "Failed to process config file." << endl;
 		ret = false;
 		goto out;
 	}
@@ -153,6 +154,6 @@ bool process_config(const char *path)
 out:
 	json_object_put(obj);
 	if (ret)
-		puts("Done processing config file.");
+		cout << "Done processing config file." << endl;
 	return ret;
 }
