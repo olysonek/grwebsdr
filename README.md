@@ -70,13 +70,15 @@ implemented.
 
 Known bugs
 ----------
-1. It takes a while for the browser to start playing (initially and when changing
-   the demodulation or frequency of the receiver). I believe this is due to
-   browser-side buffering of the audio stream.
-2. When using a RTL-SDR tuner then sometimes upon loading the web UI, or when
+1. When using a RTL-SDR tuner then sometimes upon loading the web UI, or when
    changing some receiver parameter, the server hangs, printing 'O' characters
    to stderr. This is caused by a race condition originating in rtl-sdr and
-   gr-osmosdr. I'm working on the fix.
+   gr-osmosdr. A patch for rtl-sdr is available from https://pastebin.com/5ykfNvdp
+   (SHA-1: 9e8f0bc2d4955b9a86003ecf88d51c0021aa5a9d), and for gr-osmosdr from
+   https://pastebin.com/SCPGBGWe (SHA-1: e4c0fc1b1051d5211f02bd81d7c840e2bcc04f7b).
+   The fix isn't complete, but it mostly works. Note that the patch for rtl-sdr
+   adds a new API call, which the gr-osmosdr patch uses, so you'll need to
+   build rtl-sdr first.
 
 License
 -------
