@@ -3,6 +3,7 @@ AM_LDFLAGS = -lgnuradio-osmosdr -lboost_system  -lgnuradio-pmt \
 	-lgnuradio-runtime -lgnuradio-blocks \
 	-lvorbisenc -lvorbis -logg -lwebsockets \
 	-ljson-c -lsqlite3
+AM_CXXFLAGS = -std=c++11
 
 bin_PROGRAMS = grwebsdr
 grwebsdr_SOURCES = am_demod.cpp auth.cpp config_load.cpp fm_demod.cpp http.cpp \
